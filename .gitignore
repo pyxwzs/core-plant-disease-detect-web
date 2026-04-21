@@ -36,3 +36,6 @@ Thumbs.db
 
 
 .venv/
+
+# Ultralytics 运行时自动生成的本机配置（含绝对路径，不应提交）
+web-flask/Ultralytics/
