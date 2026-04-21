@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时摄像头检测 - 智慧农业植物病害检测系统</title>
+    <script src="/static/vendor/vue.global.js"></script>
+    <script src="/static/vendor/element-plus.full.js"></script>
+    <script src="/static/vendor/element-plus-icons.js"></script>
+    <link rel="stylesheet" href="/static/vendor/element-plus.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        }
+        
+        #app {
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .realtime-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .realtime-header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%);
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+            flex-shrink: 0;
+        }
+        .header-left { display:flex; align-items:center; gap:14px; flex-shrink:0; }
+        .header-logo { display:flex; align-items:center; gap:10px; }
+        .header-logo img { width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,.4); }
+        .header-title { margin:0; color:white; font-weight:700; font-size:1.05rem; white-space:nowrap; }
+        .model-selector { min-width:220px; }
+        .model-selector .el-input__wrapper { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.2); }
+        .model-selector .el-input__inner { color:white; }
+        .model-selector .el-input__inner::placeholder { color:rgba(255,255,255,.7); }
+        .header-nav { flex:1; display:flex; align-items:center; justify-content:center; gap:4px; overflow:hidden; }
+        .header-user { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+        .hd-username { color:rgba(255,255,255,.9); font-size:13px; white-space:nowrap; }
+        .nav-btn { background:rgba(255,255,255,.15) !important; border:1px solid rgba(255,255,255,.25) !important; color:white !important; font-size:12px !important; padding:4px 10px !important; white-space:nowrap; }
+        .nav-btn:hover { background:rgba(255,255,255,.28) !important; }
+        .admin-btn { background:rgba(251,191,36,.25) !important; border-color:rgba(251,191,36,.45) !important; }
+        .nav-sep { color:rgba(255,255,255,.35); margin:0 2px; font-size:16px; }
+        .logout-btn { border-color:rgba(255,255,255,.4) !important; color:white !important; background:rgba(255,255,255,.1) !important; }
+        
+        .realtime-main {
+            flex: 1;
+            display: flex;
+            background: rgba(255, 255, 255, 0.7);
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .camera-panel {
+            width: 60%;
+            padding: 32px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .detection-panel {
+            width: 40%;
+            padding: 32px;
+            border-left: 1px solid #e4e7ed;
+            overflow-y: auto;
+            background: #ffffff;
+        }
+        
+        .camera-container {
+            width: 100%;
+            max-width: 640px;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background: #000;
+            min-height: 480px;
+        }
+        
+        .camera-video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .camera-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .camera-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            border-radius: 12px;
+            border: 2px dashed #c0c4cc;
+            min-height: 480px;
+        }
+        
+        .placeholder-icon {
+            font-size: 64px;
+            color: #c0c4cc;
+            margin-bottom: 16px;
+        }
+        
+        .placeholder-text {
+            color: #606266;
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .camera-controls {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+            justify-content: center;
+        }
+        
+        .control-btn {
+            min-width: 120px;
+            height: 45px;
+            font-size: 16px;
+            border-radius: 8px;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border: none;
+            color: white;
+        }
+        
+        .start-btn:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        }
+        
+        .stop-btn {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border: none;
+            color: white;
+        }
+        
+        .stop-btn:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+        
+        .detection-status {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .status-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .status-text {
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        .detection-stats {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        
+        .stats-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .stat-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .stat-label {
+            color: #606266;
+        }
+        
+        .stat-value {
+            color: #303133;
+            font-weight: 500;
+        }
+        
+        .recent-detections {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        
+        .detections-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .detection-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .detection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background: #f0f9f4;
+            border-radius: 6px;
+            border-left: 3px solid #22c55e;
+        }
+        
+        .detection-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .detection-class {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .class-name-zh {
+            font-weight: 600;
+            color: #303133;
+            font-size: 14px;
+        }
+        
+        .class-name-en {
+            font-size: 11px;
+            color: #909399;
+            font-style: italic;
+        }
+        
+        .detection-confidence {
+            background: #22c55e;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .no-detections {
+            text-align: center;
+            color: #c0c4cc;
+            padding: 40px 0;
+            font-style: italic;
+        }
+        
+        .fps-counter {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        
+        @media (max-width: 1024px) {
+            .realtime-main {
+                flex-direction: column;
+            }
+            
+            .camera-panel, .detection-panel {
+                width: 100%;
+            }
+            
+            .detection-panel {
+                border-left: none;
+                border-top: 1px solid #e4e7ed;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="realtime-container">
+            <!-- 头部 -->
+            <div class="realtime-header">
+                <div class="header-left">
+                    <div class="header-logo">
+                        <img src="./images/logo.png" alt="Logo" />
+                        <h2 class="header-title">智慧茶叶病害检测</h2>
+                    </div>
+                    <el-select v-model="selectedModel" placeholder="选择模型" @change="handleModelChange"
+                        class="model-selector" :loading="modelsLoading">
+                        <el-option v-for="model in models" :key="model.key" :label="model.name" :value="model.key">
+                            <span>{{ model.name }}</span>
+                            <el-tag size="small" type="info" style="margin-left:6px;">{{ model.num_classes }}类</el-tag>
+                        </el-option>
+                    </el-select>
+                </div>
+                <div class="header-nav">
+                    <el-dropdown v-if="isAdmin" trigger="click" @command="handleAdminNav">
+                        <el-button class="nav-btn admin-btn" size="small">⚙️ 管理 ▾</el-button>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="knowledge">📝 知识库管理</el-dropdown-item>
+                                <el-dropdown-item command="users">👥 用户管理</el-dropdown-item>
+                                <el-dropdown-item command="logs">📋 系统日志</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                    <span class="nav-sep" v-if="isAdmin">│</span>
+                    <el-button class="nav-btn" size="small" @click="navTo('detect.html')">📸 图像检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('video-detect.html')">🎬 视频检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('detection-history.html')">📋 检测历史</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('tea-knowledge.html')">📚 茶树知识</el-button>
+                </div>
+                <div class="header-user">
+                    <span class="hd-username">👤 {{ currentUser.realName || currentUser.username || '用户' }}</span>
+                    <el-button class="logout-btn" type="danger" size="small" plain @click="handleLogout">退出</el-button>
+                </div>
+            </div>
+            
+            <!-- 主要内容区域 -->
+            <div class="realtime-main">
+                <!-- 摄像头面板 -->
+                <div class="camera-panel">
+                    <!-- 摄像头显示区域 -->
+                    <div class="camera-container">
+                        <video 
+                            ref="video" 
+                            class="camera-video" 
+                            autoplay 
+                            muted 
+                            playsinline
+                            @loadedmetadata="onVideoReady"
+                            @error="onVideoError"
+                            v-show="cameraActive"
+                        ></video>
+                        <canvas 
+                            ref="canvas" 
+                            class="camera-canvas"
+                            v-show="cameraActive"
+                        ></canvas>
+                        <div class="fps-counter" v-show="cameraActive">FPS: {{ currentFPS }}</div>
+                        
+                        <!-- 摄像头占位符 -->
+                        <div class="camera-placeholder" v-show="!cameraActive">
+                            <div class="placeholder-icon">📷</div>
+                            <div class="placeholder-text">点击开始按钮启动摄像头进行实时检测</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 控制按钮 -->
+                    <div class="camera-controls">
+                        <el-button
+                            type="primary"
+                            class="control-btn start-btn"
+                            @click="startCamera"
+                            :loading="startingCamera"
+                            :disabled="cameraActive"
+                            v-if="!cameraActive"
+                        >
+                            {{ startingCamera ? '启动中...' : '🎥 开始检测' }}
+                        </el-button>
+                        <el-button
+                            type="danger"
+                            class="control-btn stop-btn"
+                            @click="stopCamera"
+                            v-if="cameraActive"
+                        >
+                            ⏹️ 停止检测
+                        </el-button>
+                    </div>
+                </div>
+                
+                <!-- 检测结果面板 -->
+                <div class="detection-panel">
+                    <!-- 检测状态 -->
+                    <div class="detection-status">
+                        <div class="status-icon">
+                            {{ cameraActive ? (detecting ? '🔍' : '📷') : '⏸️' }}
+                        </div>
+                        <div class="status-text">
+                            {{ getStatusText() }}
+                        </div>
+                    </div>
+                    
+                    <!-- 统计信息 -->
+                    <div class="detection-stats">
+                        <div class="stats-title">📊 检测统计</div>
+                        <div class="stat-item">
+                            <span class="stat-label">检测帧数:</span>
+                            <span class="stat-value">{{ detectionStats.totalFrames }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">检测到病害帧数:</span>
+                            <span class="stat-value">{{ detectionStats.framesWithDetections }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">总检测数:</span>
+                            <span class="stat-value">{{ detectionStats.totalDetections }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">平均FPS:</span>
+                            <span class="stat-value">{{ detectionStats.avgFPS.toFixed(1) }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">运行时间:</span>
+                            <span class="stat-value">{{ formatRunTime(detectionStats.runTime) }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 最近检测结果 -->
+                    <div class="recent-detections">
+                        <div class="detections-title">🎯 最近检测</div>
+                        <div class="detection-list" v-if="recentDetections.length > 0">
+                            <div 
+                                v-for="detection in recentDetections.slice(0, 10)" 
+                                :key="detection.id"
+                                class="detection-item"
+                            >
+                                <div class="detection-class">
+                                    <div class="class-name-zh">{{ detection.class_name_zh }}</div>
+                                    <div class="class-name-en">{{ detection.class_name_en }}</div>
+                                </div>
+                                <div class="detection-confidence">
+                                    {{ (detection.confidence * 100).toFixed(1) }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="no-detections" v-else>
+                            暂无检测结果
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API配置
+        const API_CONFIG = {
+            baseURL: window.location.origin,
+            endpoints: {
+                models: '/api/models',
+                realtimeDetect: '/api/realtime/detect'
+            }
+        };
+
+        // 用户缓存管理
+        const UserCache = {
+            USER_KEY: 'yyxz_core_user_info',
+            
+            saveUser(userInfo) {
+                localStorage.setItem(this.USER_KEY, JSON.stringify(userInfo));
+            },
+            
+            getUser() {
+                const userStr = localStorage.getItem(this.USER_KEY);
+                return userStr ? JSON.parse(userStr) : null;
+            },
+            
+            clearUser() {
+                localStorage.removeItem(this.USER_KEY);
+                localStorage.removeItem('yyxz_token');
+            },
+            isLoggedIn() {
+                return !!this.getUser();
+            }
+        };
+
+        const { createApp } = Vue;
+        const { ElMessage, ElLoading } = ElementPlus;
+
+        const app = createApp({
+            data() {
+                return {
+                    currentUser: {},
+                    isAdmin: false,
+                    models: [],
+                    modelsLoading: false,
+                    selectedModel: '',
+                    cameraActive: false,
+                    startingCamera: false,
+                    detecting: false,
+                    currentFPS: 0,
+                    detectionStats: {
+                        totalFrames: 0,
+                        framesWithDetections: 0,
+                        totalDetections: 0,
+                        avgFPS: 0,
+                        runTime: 0
+                    },
+                    recentDetections: [],
+                    videoStream: null,
+                    detectionInterval: null,
+                    fpsInterval: null,
+                    startTime: null,
+                    frameCount: 0,
+                    lastFrameTime: Date.now()
+                };
+            },
+            async mounted() {
+                this.checkLoginStatus();
+                await this.loadModels();
+            },
+            beforeUnmount() {
+                this.stopCamera();
+            },
+            methods: {
+                checkLoginStatus() {
+                    if (!UserCache.isLoggedIn()) {
+                        window.location.href = './login.html';
+                        return;
+                    }
+                    this.currentUser = UserCache.getUser();
+                    this.isAdmin = (this.currentUser && this.currentUser.role === 'admin');
+                },
+                
+                async loadModels() {
+                    this.modelsLoading = true;
+                    try {
+                        const response = await fetch(API_CONFIG.baseURL + API_CONFIG.endpoints.models);
+                        const result = await response.json();
+                        if (result.code === 200) {
+                            this.models = result.data;
+                            if (this.models.length > 0) {
+                                this.selectedModel = this.models[0].key;
+                            }
+                        } else {
+                            ElMessage.error(result.message);
+                        }
+                    } catch (error) {
+                        ElMessage.error('加载模型失败：' + error.message);
+                    } finally {
+                        this.modelsLoading = false;
+                    }
+                },
+                
+                handleModelChange() {
+                    // 模型切换时的处理
+                },
+                
+                async handleLogout() {
+                    this.stopCamera();
+                    UserCache.clearUser();
+                    ElMessage.success('退出成功');
+                    window.location.href = './login.html';
+                },
+                
+                navTo(page) { window.location.href = './' + page; },
+                
+                handleAdminNav(cmd) {
+                    const map = { knowledge: 'tea-knowledge-admin.html', users: 'user-manage.html', logs: 'log-manage.html' };
+                    if (map[cmd]) window.location.href = './' + map[cmd];
+                },
+                
+                goToImageDetect() { this.navTo('detect.html'); },
+                goToVideoDetect() { this.navTo('video-detect.html'); },
+                goToModelData() {
+                    const url = `./model-data.html?type=training&model=${this.selectedModel}`;
+                    window.open(url, '_blank', 'width=1200,height=800');
+                },
+                goToDetectionHistory() { this.navTo('detection-history.html'); },
+                goToTeaKnowledge() { this.navTo('tea-knowledge.html'); },
+                async startCamera() {
+                    this.startingCamera = true;
+                    try {
+                        // 请求摄像头权限
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: { 
+                                width: { ideal: 640 },
+                                height: { ideal: 480 },
+                                facingMode: 'environment' // 优先使用后置摄像头
+                            },
+                            audio: false
+                        });
+                        
+                        this.videoStream = stream;
+                        
+                        // 确保video元素存在（现在应该始终存在）
+                        if (!this.$refs.video) {
+                            throw new Error('视频元素未找到');
+                        }
+                        
+                        this.$refs.video.srcObject = stream;
+                        
+                        // 等待视频加载
+                        await new Promise((resolve, reject) => {
+                            const video = this.$refs.video;
+                            video.onloadedmetadata = resolve;
+                            video.onerror = reject;
+                            
+                            // 设置超时防止卡住
+                            setTimeout(() => {
+                                reject(new Error('视频加载超时'));
+                            }, 5000);
+                        });
+                        
+                        // 视频加载成功后才显示摄像头界面
+                        this.cameraActive = true;
+                        this.startTime = Date.now();
+                        
+                        // 开始检测
+                        this.startDetection();
+                        
+                        ElMessage.success('摄像头启动成功');
+                    } catch (error) {
+                        console.error('摄像头启动失败:', error);
+                        
+                        let errorMessage = '摄像头启动失败：';
+                        if (error.name === 'NotAllowedError') {
+                            errorMessage += '用户拒绝了摄像头权限';
+                        } else if (error.name === 'NotFoundError') {
+                            errorMessage += '未找到摄像头设备';
+                        } else if (error.name === 'NotReadableError') {
+                            errorMessage += '摄像头被其他应用占用';
+                        } else if (error.name === 'OverconstrainedError') {
+                            errorMessage += '摄像头不支持指定的配置';
+                        } else {
+                            errorMessage += error.message;
+                        }
+                        
+                        ElMessage.error(errorMessage);
+                        
+                        // 发生错误时重置状态
+                        this.cameraActive = false;
+                        if (this.videoStream) {
+                            this.videoStream.getTracks().forEach(track => track.stop());
+                            this.videoStream = null;
+                        }
+                    } finally {
+                        this.startingCamera = false;
+                    }
+                },
+                
+                stopCamera() {
+                    if (this.videoStream) {
+                        this.videoStream.getTracks().forEach(track => track.stop());
+                        this.videoStream = null;
+                    }
+                    
+                    if (this.detectionInterval) {
+                        clearInterval(this.detectionInterval);
+                        this.detectionInterval = null;
+                    }
+                    
+                    if (this.fpsInterval) {
+                        clearInterval(this.fpsInterval);
+                        this.fpsInterval = null;
+                    }
+                    
+                    this.cameraActive = false;
+                    this.detecting = false;
+                    this.currentFPS = 0;
+                },
+                
+                startDetection() {
+                    this.detecting = true;
+                    
+                    // 设置检测间隔（每200ms检测一次，相当于5FPS）
+                    this.detectionInterval = setInterval(() => {
+                        this.detectFrame();
+                    }, 200);
+                    
+                    // 设置FPS计算间隔
+                    this.fpsInterval = setInterval(() => {
+                        this.updateFPS();
+                    }, 1000);
+                },
+                
+                async detectFrame() {
+                    if (!this.cameraActive) return;
+                    
+                    // 确保DOM元素存在
+                    if (!this.$refs.video || !this.$refs.canvas) {
+                        return;
+                    }
+                    
+                    const video = this.$refs.video;
+                    const canvas = this.$refs.canvas;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 检查视频是否准备就绪
+                    if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
+                        return;
+                    }
+                    
+                    // 设置canvas尺寸
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    // 绘制当前帧到canvas
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    // 获取图像数据
+                    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    try {
+                        // 发送到后端进行检测
+                        const response = await fetch(API_CONFIG.baseURL + API_CONFIG.endpoints.realtimeDetect, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                model: this.selectedModel,
+                                image: imageData
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.code === 200) {
+                            this.processDetectionResult(result.data, ctx);
+                        }
+                        
+                        // 更新统计
+                        this.updateStats();
+                        this.frameCount++;
+                        
+                    } catch (error) {
+                        // 静默处理检测错误
+                    }
+                },
+                
+                processDetectionResult(data, ctx) {
+                    // 确保canvas元素存在
+                    const canvas = this.$refs.canvas;
+                    if (!canvas || !ctx) {
+                        return;
+                    }
+                    
+                    // 清除之前的绘制
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    if (data.detections && data.detections.length > 0) {
+                        this.detectionStats.framesWithDetections++;
+                        this.detectionStats.totalDetections += data.detections.length;
+                        
+                        // 绘制检测框
+                        this.drawDetections(ctx, data.detections);
+                        
+                        // 更新最近检测列表
+                        data.detections.forEach(detection => {
+                            this.recentDetections.unshift({
+                                id: Date.now() + Math.random(),
+                                class_name_en: detection.class_name_en,
+                                class_name_zh: detection.class_name_zh,
+                                confidence: detection.confidence,
+                                timestamp: new Date()
+                            });
+                        });
+                        
+                        // 限制最近检测数量
+                        if (this.recentDetections.length > 50) {
+                            this.recentDetections = this.recentDetections.slice(0, 50);
+                        }
+                    }
+                },
+                
+                drawDetections(ctx, detections) {
+                    const colors = [
+                        '#22c55e', '#3b82f6', '#ef4444', '#f59e0b', 
+                        '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
+                    ];
+                    
+                    detections.forEach((detection, index) => {
+                        const bbox = detection.bbox;
+                        const color = colors[detection.class_id % colors.length];
+                        
+                        // 绘制边界框
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(bbox.x1, bbox.y1, bbox.width, bbox.height);
+                        
+                        // 绘制标签背景
+                        const label = `${detection.class_name_zh} ${(detection.confidence * 100).toFixed(1)}%`;
+                        ctx.font = '16px Arial';
+                        const textWidth = ctx.measureText(label).width;
+                        
+                        ctx.fillStyle = color;
+                        ctx.fillRect(bbox.x1, bbox.y1 - 25, textWidth + 10, 25);
+                        
+                        // 绘制标签文字
+                        ctx.fillStyle = 'white';
+                        ctx.fillText(label, bbox.x1 + 5, bbox.y1 - 5);
+                    });
+                },
+                
+                updateStats() {
+                    this.detectionStats.totalFrames++;
+                    
+                    if (this.startTime) {
+                        this.detectionStats.runTime = Date.now() - this.startTime;
+                        
+                        const seconds = this.detectionStats.runTime / 1000;
+                        if (seconds > 0) {
+                            this.detectionStats.avgFPS = this.detectionStats.totalFrames / seconds;
+                        }
+                    }
+                },
+                
+                updateFPS() {
+                    const now = Date.now();
+                    const timeDiff = now - this.lastFrameTime;
+                    this.currentFPS = Math.round(1000 / timeDiff * this.frameCount);
+                    this.frameCount = 0;
+                    this.lastFrameTime = now;
+                },
+                
+                getStatusText() {
+                    if (!this.cameraActive) return '摄像头未启动';
+                    if (this.detecting) return '正在实时检测中...';
+                    return '摄像头已启动';
+                },
+                
+                formatRunTime(milliseconds) {
+                    const seconds = Math.floor(milliseconds / 1000);
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${mins}:${secs.toString().padStart(2, '0')}`;
+                },
+                
+                onVideoReady() {
+                    // 视频准备就绪
+                },
+                
+                onVideoError(event) {
+                    ElMessage.error('视频播放失败');
+                }
+            }
+        });
+        
+        app.use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

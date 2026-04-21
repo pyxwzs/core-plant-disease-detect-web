@@ -1,0 +1,1060 @@
+<!-- MD5: 12d1295d2839e4f139d979332d0d22c8 -->
+<!--
+版权所有 © 2025 羊羊小栈 (GJQ)
+
+作者：羊羊小栈
+时间：2025-07-31 16:25:08
+
+本系统为原创作品，禁止二次销售！禁止将系统对应的视频、文档进行二次发布！
+违者需立即停止侵权行为，并按照【羊羊小栈系统版权声明及保护条款】中规定数额进行赔偿，并承担相应法律责任。
+-->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧农业-植物病害检测系统</title>
+    <script src="/static/vendor/vue.global.js"></script>
+    <script src="/static/vendor/element-plus.full.js"></script>
+    <script src="/static/vendor/element-plus-icons.js"></script>
+    <link rel="stylesheet" href="/static/vendor/element-plus.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        }
+        
+        #app {
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .classify-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .classify-header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%);
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+            flex-shrink: 0;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-shrink: 0;
+        }
+        
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        
+        .header-logo img {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        .header-title {
+            margin: 0;
+            color: white;
+            font-weight: 700;
+            font-size: 1.05rem;
+            white-space: nowrap;
+        }
+        
+        .header-nav {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            overflow: hidden;
+        }
+        
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .hd-username {
+            color: rgba(255,255,255,.9);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        
+        .model-selector {
+            min-width: 220px;
+        }
+        
+        .model-selector .el-input__wrapper {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .model-selector .el-input__inner {
+            color: white;
+        }
+        
+        .model-selector .el-input__inner::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,.15) !important;
+            border: 1px solid rgba(255,255,255,.25) !important;
+            color: white !important;
+            font-size: 12px !important;
+            padding: 4px 10px !important;
+            white-space: nowrap;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,.28) !important;
+        }
+        
+        .admin-btn {
+            background: rgba(251,191,36,.25) !important;
+            border-color: rgba(251,191,36,.45) !important;
+        }
+        
+        .nav-sep { color: rgba(255,255,255,.35); margin: 0 2px; font-size:16px; }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,.9);
+            font-size: 13px;
+        }
+        
+        .logout-btn {
+            border-color: rgba(255,255,255,.4) !important;
+            color: white !important;
+            background: rgba(255,255,255,.1) !important;
+        }
+        
+        .classify-main {
+            flex: 1;
+            display: flex;
+            background: rgba(255, 255, 255, 0.7);
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .left-panel {
+            width: 50%;
+            padding: 32px;
+            overflow-y: auto;
+        }
+        
+        .right-panel {
+            width: 50%;
+            padding: 32px;
+            border-left: 1px solid #e4e7ed;
+            overflow-y: auto;
+            background: #ffffff;
+        }
+        
+        .upload-area {
+            border: 2px dashed #c0c4cc;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #ffffff;
+            margin-bottom: 24px;
+        }
+        
+        .upload-area:hover {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.05);
+        }
+        
+        .upload-area.dragover {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #c0c4cc;
+            margin-bottom: 16px;
+        }
+        
+        .upload-text {
+            color: #606266;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .upload-hint {
+            color: #909399;
+            font-size: 14px;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .image-preview:hover {
+            transform: scale(1.02);
+        }
+        
+        .image-preview-dialog .el-dialog__body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: auto;
+            max-height: 80vh;
+        }
+        
+        .image-preview-container {
+            position: relative;
+            overflow: auto;
+            max-width: 100%;
+            max-height: 100%;
+            cursor: grab;
+        }
+        
+        .image-preview-container:active {
+            cursor: grabbing;
+        }
+        
+        .image-preview-dialog img {
+            display: block;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+            min-width: 300px;
+            min-height: 200px;
+        }
+        
+        .image-zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .zoom-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        .zoom-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .zoom-text {
+            color: white;
+            font-size: 14px;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .supported-classes-container {
+            max-height: 120px;
+            overflow-y: auto;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .supported-classes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 4px;
+        }
+        
+        .class-tag {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            color: #15803d;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .classify-button {
+            width: 100%;
+            height: 50px;
+            font-size: 16px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border: none;
+            margin-bottom: 16px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .classify-button:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+        
+        .result-container {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .result-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #303133;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-rank {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #606266;
+            font-size: 14px;
+        }
+        
+        .result-rank.rank-1 {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+        }
+        
+        .result-rank.rank-2 {
+            background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
+            color: white;
+        }
+        
+        .result-rank.rank-3 {
+            background: linear-gradient(135deg, #CD7F32, #B8860B);
+            color: white;
+        }
+        
+        .result-info {
+            flex: 1;
+            margin-left: 16px;
+        }
+        
+        .result-class {
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+            margin-bottom: 4px;
+        }
+        
+        .result-class-en {
+            font-size: 12px;
+            color: #909399;
+        }
+        
+        .result-confidence {
+            font-size: 18px;
+            font-weight: 600;
+            color: #16a34a;
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 6px;
+            background: #f0f2f5;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .empty-result {
+            text-align: center;
+            color: #909399;
+            padding: 40px 0;
+        }
+        
+        .empty-result .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-item {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @media (max-width: 1024px) {
+            .classify-main {
+                flex-direction: column;
+            }
+            
+            .left-panel, .right-panel {
+                width: 100%;
+            }
+            
+            .right-panel {
+                border-left: none;
+                border-top: 1px solid #e4e7ed;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="classify-container">
+            <!-- 头部 -->
+            <div class="classify-header">
+                <div class="header-left">
+                    <div class="header-logo">
+                        <img src="./images/logo.png" alt="Logo" />
+                        <h2 class="header-title">智慧茶叶病害检测</h2>
+                    </div>
+                    <el-select v-model="selectedModel" placeholder="选择模型" @change="handleModelChange"
+                        class="model-selector" :loading="modelsLoading">
+                        <el-option v-for="model in models" :key="model.key" :label="model.name" :value="model.key">
+                            <span>{{ model.name }}</span>
+                            <el-tag size="small" type="info" style="margin-left:6px;">{{ model.num_classes }}类</el-tag>
+                        </el-option>
+                    </el-select>
+                </div>
+                <div class="header-nav">
+                    <el-dropdown v-if="isAdmin" trigger="click" @command="handleAdminNav">
+                        <el-button class="nav-btn admin-btn" size="small">⚙️ 管理 ▾</el-button>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="knowledge">📝 知识库管理</el-dropdown-item>
+                                <el-dropdown-item command="users">👥 用户管理</el-dropdown-item>
+                                <el-dropdown-item command="logs">📋 系统日志</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                    <span class="nav-sep" v-if="isAdmin">│</span>
+                    <el-button class="nav-btn" size="small" @click="navTo('video-detect.html')">🎬 视频检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('realtime-detect.html')">📹 实时检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('detection-history.html')">📋 检测历史</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('tea-knowledge.html')">📚 茶树知识</el-button>
+                </div>
+                <div class="header-user">
+                    <span class="hd-username">👤 {{ currentUser.realName || currentUser.username || '用户' }}</span>
+                    <el-button class="logout-btn" type="danger" size="small" plain @click="handleLogout">退出</el-button>
+                </div>
+            </div>
+            
+            <!-- 主要内容区域 -->
+            <div class="classify-main">
+                <!-- 左侧面板 - 图像上传和预览 -->
+                <div class="left-panel">
+                    <!-- 图像上传区域 -->
+                    <div
+                        class="upload-area"
+                        :class="{ dragover: isDragOver }"
+                        @click="$refs.fileInput.click()"
+                        @drop="handleDrop"
+                        @dragover.prevent="isDragOver = true"
+                        @dragleave="isDragOver = false"
+                        @dragend="isDragOver = false"
+                        v-if="!selectedImage"
+                    >
+                        <div class="upload-icon">🌱</div>
+                        <div class="upload-text">点击选择植物叶片图像</div>
+                        <div class="upload-hint">支持 JPG、PNG 格式，或拖拽图片到此区域，选好后点击「开始病害检测」</div>
+                    </div>
+                    
+                    <!-- 图像预览 -->
+                    <div v-if="selectedImage" style="text-align: center;">
+                        <img :src="selectedImage" alt="预览图片" class="image-preview" @click="showImagePreview = true" />
+                        <div style="display: flex; gap: 12px; justify-content: center; margin: 0 0 20px 0;">
+                            <el-button
+                                type="danger"
+                                size="small"
+                                @click="clearImage"
+                            >
+                                清除图片
+                            </el-button>
+                            <el-button
+                                type="primary"
+                                size="small"
+                                @click="$refs.fileInput.click()"
+                            >
+                                重新选择
+                            </el-button>
+                        </div>
+                    </div>
+                    
+                    <!-- 病害检测按钮 -->
+                    <el-button
+                        type="primary"
+                        :loading="detecting"
+                        @click="detectObjects"
+                        :disabled="!selectedImage || detecting"
+                        class="classify-button"
+                        v-if="selectedImage"
+                    >
+                        {{ detecting ? '病害检测中...' : '开始病害检测' }}
+                    </el-button>
+                    
+                    <!-- 模型信息 -->
+                    <div v-if="currentModel" class="result-container" style="margin-top: 16px;">
+                        <div class="result-title">
+                            ℹ️ 模型信息
+                        </div>
+                        <div style="color: #606266; line-height: 1.6;">
+                            <p><strong>模型名称：</strong>{{ currentModel.name }}</p>
+                            <p><strong>模型路径：</strong><span style="font-size: 12px; color: #909399;">{{ currentModel.model_path }}</span></p>
+                            <p><strong>检测类别数量：</strong>{{ getSupportedClassesCount() }} 类</p>
+                            <div><strong>支持类别：</strong></div>
+                            <div class="supported-classes-container">
+                                <div class="supported-classes-grid">
+                                    <div v-for="className in getSupportedClassesList()" :key="className" class="class-tag">
+                                        {{ className }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 模型数据查看按钮 -->
+                            <div style="margin-top: 16px; display: flex; gap: 8px;">
+                                <el-button
+                                    size="small" 
+                                    type="info"
+                                    @click="viewTrainingData"
+                                    v-if="currentModel.train_results_path"
+                                >
+                                    📊 查看训练数据
+                                </el-button>
+                                <el-button
+                                    size="small"
+                                    type="success" 
+                                    @click="viewValidationData"
+                                    v-if="currentModel.val_data_path"
+                                >
+                                    🖼️ 查看测试数据
+                                </el-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧面板 - 病害检测结果 -->
+                <div class="right-panel">
+                    <!-- 加载状态 -->
+                    <div v-if="detecting" class="loading-overlay">
+                        <el-loading />
+                    </div>
+                    
+                    <!-- 病害检测结果 -->
+                    <div v-if="detectionResult && !detecting">
+                        <div class="result-container">
+                            <div class="result-title">
+                                🔬 病害检测结果 ({{ detectionResult.total_detections || 0 }} 个病害)
+                            </div>
+                            
+                            <!-- 检测结果图片 -->
+                            <div v-if="detectionResult.detection_image" style="text-align: center; margin-bottom: 20px;">
+                                <div style="margin-bottom: 10px; font-weight: 600; color: #303133;">📸 检测结果图像</div>
+                                <img 
+                                    :src="detectionResult.detection_image" 
+                                    alt="检测结果" 
+                                    style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); cursor: pointer;"
+                                    @click="previewDetectionImage"
+                                />
+                            </div>
+                            
+                            <!-- 有检测结果时显示 -->
+                            <div v-if="detectionResult.detections && detectionResult.detections.length > 0">
+                                <div
+                                    v-for="(detection, index) in detectionResult.detections"
+                                    :key="detection.detection_id"
+                                    class="result-item"
+                                    :style="{ animationDelay: index * 0.1 + 's' }"
+                                >
+                                    <div
+                                        class="result-rank"
+                                        :class="index < 3 ? `rank-${index + 1}` : ''"
+                                    >
+                                        {{ index + 1 }}
+                                    </div>
+                                    
+                                    <div class="result-info">
+                                        <div class="result-class">
+                                            {{ detection.class_name_zh }}
+                                        </div>
+                                        <div class="result-class-en">
+                                            {{ detection.class_name }} (ID: {{ detection.detection_id }})
+                                        </div>
+                                        <div style="font-size: 12px; color: #909399; margin-top: 4px;">
+                                            坐标: ({{ Math.round(detection.bbox.x1) }}, {{ Math.round(detection.bbox.y1) }}) → 
+                                            ({{ Math.round(detection.bbox.x2) }}, {{ Math.round(detection.bbox.y2) }})
+                                        </div>
+                                        <div class="confidence-bar">
+                                            <div
+                                                class="confidence-fill"
+                                                :style="{ width: detection.confidence * 100 + '%' }"
+                                            ></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="result-confidence">
+                                        {{ detection.percentage }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 无检测结果时显示 -->
+                            <div v-else style="text-align: center; padding: 20px; color: #909399;">
+                                <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+                                <p>{{ detectionResult.message || '未检测到任何植物病害' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 空状态 -->
+                    <div v-if="!detectionResult && !detecting" class="empty-result">
+                        <div class="icon">🔍</div>
+                        <p>上传图片并点击检测按钮查看结果</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 隐藏的文件输入 -->
+        <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            style="display: none"
+            @change="handleImageUpload"
+        />
+        
+        <!-- 图片预览对话框 -->
+        <el-dialog
+            v-model="showImagePreview"
+            title="图片预览"
+            width="40%"
+            class="image-preview-dialog"
+            :show-close="true"
+            center
+        >
+            <div class="image-preview-container" 
+                 @wheel="handleImageZoom" 
+                 @mousedown="startDrag" 
+                 @mousemove="onDrag" 
+                 @mouseup="endDrag" 
+                 @mouseleave="endDrag"
+                 ref="imageContainer">
+                <img :src="previewImageForDetection || selectedImage" 
+                     :alt="previewImageForDetection ? '检测结果预览' : '原图预览'" 
+                     :style="{ transform: `scale(${imageScale}) translate(${imageTranslateX}px, ${imageTranslateY}px)` }"
+                     @dragstart.prevent />
+            </div>
+            
+            <div class="image-zoom-controls">
+                <button class="zoom-btn" @click="zoomOut">−</button>
+                <span class="zoom-text">{{ Math.round(imageScale * 100) }}%</span>
+                <button class="zoom-btn" @click="zoomIn">+</button>
+                <button class="zoom-btn" @click="resetZoom" title="重置">⌂</button>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script>
+        // API配置
+        const API_CONFIG = {
+            baseURL: window.location.origin,
+            endpoints: {
+                models: '/api/models',
+                detect: '/api/detect'
+            }
+        };
+
+        // 用户缓存管理
+        const UserCache = {
+            USER_KEY: 'yyxz_core_user_info',
+            
+            saveUser(userInfo) {
+                localStorage.setItem(this.USER_KEY, JSON.stringify(userInfo));
+            },
+            
+            getUser() {
+                const userStr = localStorage.getItem(this.USER_KEY);
+                return userStr ? JSON.parse(userStr) : null;
+            },
+            
+            clearUser() {
+                localStorage.removeItem(this.USER_KEY);
+                localStorage.removeItem('yyxz_token');
+            },
+            
+            isLoggedIn() {
+                return !!this.getUser();
+            }
+        };
+
+        const { createApp } = Vue;
+        const { ElMessage, ElLoading } = ElementPlus;
+
+        const app = createApp({
+            data() {
+                return {
+                    currentUser: {},
+                    isAdmin: false,
+                    models: [],
+                    modelsLoading: false,
+                    selectedModel: '',
+                    selectedImage: null,
+                    detecting: false,
+                    detectionResult: null,
+                    isDragOver: false,
+                    showImagePreview: false,
+                    imageScale: 1,
+                    imageTranslateX: 0,
+                    imageTranslateY: 0,
+                    isDragging: false,
+                    dragStartX: 0,
+                    dragStartY: 0,
+                    dragStartTranslateX: 0,
+                    dragStartTranslateY: 0,
+                    previewImageForDetection: null
+                };
+            },
+            computed: {
+                currentModel() {
+                    return this.models.find(m => m.key === this.selectedModel) || {};
+                }
+            },
+            async mounted() {
+                this.checkLoginStatus();
+                await this.loadModels();
+            },
+            methods: {
+                checkLoginStatus() {
+                    if (!UserCache.isLoggedIn()) {
+                        window.location.href = './login.html';
+                        return;
+                    }
+                    this.currentUser = UserCache.getUser();
+                    this.isAdmin = (this.currentUser && this.currentUser.role === 'admin');
+                },
+                
+                async loadModels() {
+                    this.modelsLoading = true;
+                    try {
+                        const response = await fetch(API_CONFIG.baseURL + API_CONFIG.endpoints.models);
+                        const result = await response.json();
+                        if (result.code === 200) {
+                            this.models = result.data;
+                            if (this.models.length > 0) {
+                                this.selectedModel = this.models[0].key;
+                            }
+                        } else {
+                            ElMessage.error(result.message);
+                        }
+                    } catch (error) {
+                        ElMessage.error('加载模型失败：' + error.message);
+                    } finally {
+                        this.modelsLoading = false;
+                    }
+                },
+                
+                handleModelChange() {
+                    this.detectionResult = null;
+                },
+                
+                async handleLogout() {
+                    UserCache.clearUser();
+                    ElMessage.success('退出成功');
+                    window.location.href = './login.html';
+                },
+                
+                navTo(page) { window.location.href = './' + page; },
+                
+                handleAdminNav(cmd) {
+                    const map = { knowledge: 'tea-knowledge-admin.html', users: 'user-manage.html', logs: 'log-manage.html' };
+                    if (map[cmd]) window.location.href = './' + map[cmd];
+                },
+                
+                goToVideoDetect() { this.navTo('video-detect.html'); },
+                goToRealtimeDetect() { this.navTo('realtime-detect.html'); },
+                goToDetectionHistory() { this.navTo('detection-history.html'); },
+                goToTeaKnowledge() { this.navTo('tea-knowledge.html'); },
+                
+                handleImageUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    this.processImageFile(file);
+                    event.target.value = '';
+                },
+                
+                handleDrop(event) {
+                    event.preventDefault();
+                    this.isDragOver = false;
+                    
+                    const files = event.dataTransfer.files;
+                    if (files.length > 0) {
+                        this.processImageFile(files[0]);
+                    }
+                },
+                
+                processImageFile(file) {
+                    if (!file.type.startsWith('image/')) {
+                        ElMessage.error('请选择图片文件');
+                        return;
+                    }
+                    
+                    if (file.size > 30 * 1024 * 1024) {
+                        ElMessage.error('图片大小不能超过30MB');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.selectedImage = e.target.result;
+                        this.detectionResult = null;
+                    };
+                    reader.readAsDataURL(file);
+                },
+                
+                clearImage() {
+                    this.selectedImage = null;
+                    this.detectionResult = null;
+                },
+                
+                getSupportedClassesList() {
+                    if (!this.currentModel || !this.currentModel.supported_classes) {
+                        return [];
+                    }
+                    return this.currentModel.supported_classes;
+                },
+                
+                getSupportedClassesCount() {
+                    if (!this.currentModel || !this.currentModel.num_classes) {
+                        return 0;
+                    }
+                    return this.currentModel.num_classes;
+                },
+                
+                async detectObjects() {
+                    if (!this.selectedImage || this.detecting) return;
+                    
+                    this.detecting = true;
+                    
+                    try {
+                        const response = await fetch(API_CONFIG.baseURL + API_CONFIG.endpoints.detect, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                model: this.selectedModel,
+                                image: this.selectedImage
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        if (result.code === 200) {
+                            this.detectionResult = result.data;
+                            if (result.data.detections && result.data.detections.length > 0) {
+                                ElMessage.success(`检测完成，发现 ${result.data.total_detections} 个病害`);
+                            } else {
+                                ElMessage.info('检测完成，未发现任何病害');
+                            }
+                        } else if (result.code === 401) {
+                            UserCache.clearUser();
+                            window.location.href = './login.html';
+                        } else {
+                            ElMessage.error(result.message);
+                        }
+                    } catch (error) {
+                        ElMessage.error('病害检测失败：' + error.message);
+                    } finally {
+                        this.detecting = false;
+                    }
+                },
+                
+                // 图片预览缩放功能
+                handleImageZoom(event) {
+                    event.preventDefault();
+                    const delta = event.deltaY > 0 ? -0.1 : 0.1;
+                    this.imageScale = Math.max(0.1, Math.min(5, this.imageScale + delta));
+                },
+                
+                zoomIn() {
+                    this.imageScale = Math.min(5, this.imageScale + 0.2);
+                },
+                
+                zoomOut() {
+                    this.imageScale = Math.max(0.1, this.imageScale - 0.2);
+                },
+                
+                resetZoom() {
+                    this.imageScale = 1;
+                    this.imageTranslateX = 0;
+                    this.imageTranslateY = 0;
+                },
+                
+                // 图片拖拽功能
+                startDrag(event) {
+                    if (this.imageScale <= 1) return;
+                    this.isDragging = true;
+                    this.dragStartX = event.clientX;
+                    this.dragStartY = event.clientY;
+                    this.dragStartTranslateX = this.imageTranslateX;
+                    this.dragStartTranslateY = this.imageTranslateY;
+                },
+                
+                onDrag(event) {
+                    if (!this.isDragging || this.imageScale <= 1) return;
+                    const deltaX = event.clientX - this.dragStartX;
+                    const deltaY = event.clientY - this.dragStartY;
+                    this.imageTranslateX = this.dragStartTranslateX + deltaX / this.imageScale;
+                    this.imageTranslateY = this.dragStartTranslateY + deltaY / this.imageScale;
+                },
+                
+                endDrag() {
+                    this.isDragging = false;
+                },
+                
+                // 查看训练数据
+                viewTrainingData() {
+                    if (!this.currentModel || !this.currentModel.train_results_path) {
+                        ElMessage.warning('当前模型没有配置训练数据路径');
+                        return;
+                    }
+                    
+                    // 打开新窗口显示训练数据图表
+                    const url = `./model-data.html?type=training&model=${this.selectedModel}`;
+                    window.open(url, '_blank', 'width=1200,height=800');
+                },
+                
+                // 查看验证数据
+                viewValidationData() {
+                    if (!this.currentModel || !this.currentModel.val_data_path) {
+                        ElMessage.warning('当前模型没有配置验证数据路径');
+                        return;
+                    }
+                    
+                    // 打开新窗口显示验证数据
+                    const url = `./model-data.html?type=validation&model=${this.selectedModel}`;
+                    window.open(url, '_blank', 'width=1200,height=800');
+                },
+                
+                // 预览检测结果图片
+                previewDetectionImage() {
+                    if (this.detectionResult && this.detectionResult.detection_image) {
+                        this.showImagePreview = true;
+                        // 临时设置预览图片为检测结果图片
+                        this.previewImageForDetection = this.detectionResult.detection_image;
+                    }
+                }
+            },
+            
+            watch: {
+                showImagePreview(newVal) {
+                    if (newVal) {
+                        this.resetZoom();
+                    } else {
+                        // 关闭预览时清理检测结果图片
+                        this.previewImageForDetection = null;
+                    }
+                }
+            }
+        });
+        
+        app.use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

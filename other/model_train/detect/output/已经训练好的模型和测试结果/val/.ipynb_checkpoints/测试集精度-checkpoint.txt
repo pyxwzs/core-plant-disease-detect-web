@@ -1,0 +1,30 @@
+                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95):
+                   all        234        912      0.459      0.533      0.533      0.359
+       Apple Scab Leaf          8         14      0.617      0.214      0.524      0.348
+            Apple leaf          9         30      0.489      0.383      0.489      0.363
+       Apple rust leaf          6          7      0.318      0.857      0.763      0.612
+      Bell_pepper leaf          8         51      0.588      0.588      0.647      0.457
+ Bell_pepper leaf spot          6         22      0.134      0.136      0.163      0.128
+        Blueberry leaf         10        122      0.741      0.776      0.831      0.487
+           Cherry leaf          3         12      0.233      0.333      0.129        0.1
+   Corn Gray leaf spot          6          6      0.385      0.317       0.38      0.302
+      Corn leaf blight         23         50      0.465        0.7      0.535      0.334
+        Corn rust leaf          9          9      0.657          1      0.962      0.632
+            Peach leaf         15         87      0.551       0.77      0.707      0.445
+Potato leaf early blight         10         32      0.219      0.469      0.161      0.116
+Potato leaf late blight         10         37      0.306      0.214      0.235      0.158
+        Raspberry leaf          5         11      0.293      0.909      0.888      0.683
+         Soyabean leaf          5         29      0.639      0.671      0.772      0.647
+Squash Powdery mildew leaf         13         29      0.431      0.419      0.567      0.396
+       Strawberry leaf          8         42      0.703      0.857      0.871      0.593
+Tomato Early blight leaf          6         24      0.116     0.0833      0.152      0.102
+Tomato Septoria leaf spot         18         42      0.647      0.667      0.572      0.307
+           Tomato leaf          7         35      0.478      0.543      0.549      0.285
+Tomato leaf bacterial spot         14         39      0.396      0.169      0.342      0.221
+Tomato leaf late blight         11         23      0.433      0.565      0.415      0.283
+Tomato leaf mosaic virus          5         21      0.433      0.571       0.48      0.288
+Tomato leaf yellow virus          8        107       0.54      0.374      0.461      0.201
+      Tomato mold leaf          5          5      0.495        0.6      0.528      0.329
+Tomato two spotted spider mites leaf          1          1          0          0          0          0
+            grape leaf          6         20      0.756       0.75      0.795      0.556
+  grape leaf black rot          2          5      0.796          1      0.995      0.672

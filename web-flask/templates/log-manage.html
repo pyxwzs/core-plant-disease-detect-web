@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>系统日志 - 智慧农业植物病害检测系统</title>
+    <script src="/static/vendor/vue.global.js"></script>
+    <script src="/static/vendor/element-plus.full.js"></script>
+    <link rel="stylesheet" href="/static/vendor/element-plus.css" />
+    <style>
+        html, body { margin: 0; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0fdf4; }
+        /* ===== 统一顶栏 ===== */
+        .app-header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%);
+            padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15); position: sticky; top: 0; z-index: 100;
+        }
+        .hd-left { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+        .hd-left img { width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,.4); }
+        .hd-title { margin:0; color:white; font-weight:700; font-size:1.05rem; white-space:nowrap; }
+        .hd-nav { flex:1; display:flex; align-items:center; justify-content:center; gap:4px; overflow:hidden; }
+        .hd-user { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+        .hd-username { color:rgba(255,255,255,.9); font-size:13px; white-space:nowrap; }
+        .nav-btn { background:rgba(255,255,255,.15) !important; border:1px solid rgba(255,255,255,.25) !important; color:white !important; font-size:12px !important; padding:4px 10px !important; white-space:nowrap; }
+        .nav-btn:hover { background:rgba(255,255,255,.28) !important; }
+        .admin-btn { background:rgba(251,191,36,.25) !important; border-color:rgba(251,191,36,.45) !important; }
+        .nav-sep { color:rgba(255,255,255,.35); margin:0 2px; font-size:16px; }
+        .logout-btn { border-color:rgba(255,255,255,.4) !important; color:white !important; background:rgba(255,255,255,.1) !important; }
+        /* ===== 内容区 ===== */
+        .app-content { width: 100%; max-width: 1300px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
+        #app { width: 100%; }
+
+        .page-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+        .page-title { margin: 0; color: #166534; font-size: 1.4rem; font-weight: 700; }
+
+        .auth-card {
+            background: #fff; border-radius: 10px; padding: 14px 20px;
+            box-shadow: 0 1px 6px rgba(0,0,0,.08); margin-bottom: 16px;
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+        .auth-card label { font-size: 14px; color: #374151; font-weight: 500; white-space: nowrap; }
+
+        .filter-card {
+            background: #fff; border-radius: 10px; padding: 14px 20px;
+            box-shadow: 0 1px 6px rgba(0,0,0,.08); margin-bottom: 16px;
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+
+        .native-select {
+            height: 32px; padding: 0 8px; border: 1px solid #dcdfe6; border-radius: 4px;
+            background: #fff; font-size: 14px; color: #606266; cursor: pointer; outline: none;
+        }
+        .native-select:focus { border-color: #409eff; }
+
+        .table-wrap { width: 100%; overflow-x: auto; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+        .data-table { width: 100%; min-width: 900px; border-collapse: collapse; background: #fff; font-size: 13px; }
+        .data-table th {
+            background: #f0fdf4; color: #166534; font-weight: 600;
+            padding: 10px 12px; border-bottom: 2px solid #bbf7d0;
+            text-align: left; white-space: nowrap;
+        }
+        .data-table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; color: #1f2937; vertical-align: middle; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .data-table tr:hover td { background: #f0fdf4; }
+        .data-table .no-data { text-align: center; color: #9ca3af; padding: 40px; }
+
+        .type-tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+        .type-admin { background: #fef3c7; color: #92400e; }
+        .type-user  { background: #eff6ff; color: #1e40af; }
+        .type-error { background: #fee2e2; color: #991b1b; }
+
+        .result-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+        .result-success { background: #dcfce7; color: #166534; }
+        .result-fail    { background: #fee2e2; color: #dc2626; }
+        .result-error   { background: #fef3c7; color: #b45309; }
+
+        .detail-pre {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+            padding: 12px; font-size: 13px; white-space: pre-wrap; word-break: break-all;
+            max-height: 300px; overflow-y: auto; color: #1e293b;
+        }
+        .detail-row { margin-bottom: 10px; }
+        .detail-label { font-weight: 600; color: #374151; min-width: 80px; display: inline-block; }
+
+        .stats-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .stat-card {
+            flex: 1; min-width: 110px; background: #fff; border-radius: 10px;
+            padding: 12px 16px; box-shadow: 0 1px 6px rgba(0,0,0,.08);
+        }
+        .stat-label { font-size: 12px; color: #6b7280; }
+        .stat-value { font-size: 1.4rem; font-weight: 700; color: #166534; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- 统一顶栏 -->
+    <div class="app-header">
+        <div class="hd-left">
+            <img src="./images/logo.png" alt="Logo" />
+            <h2 class="hd-title">智慧茶叶病害检测</h2>
+        </div>
+        <div class="hd-nav">
+            <el-button class="nav-btn admin-btn" size="small" @click="navTo('tea-knowledge-admin.html')">📝 知识库管理</el-button>
+            <el-button class="nav-btn admin-btn" size="small" @click="navTo('user-manage.html')">👥 用户管理</el-button>
+            <el-button class="nav-btn admin-btn" size="small" disabled style="opacity:.6;">📋 系统日志</el-button>
+            <span class="nav-sep">│</span>
+            <el-button class="nav-btn" size="small" @click="navTo('detect.html')">📸 图像检测</el-button>
+            <el-button class="nav-btn" size="small" @click="navTo('video-detect.html')">🎬 视频检测</el-button>
+            <el-button class="nav-btn" size="small" @click="navTo('realtime-detect.html')">📹 实时检测</el-button>
+            <el-button class="nav-btn" size="small" @click="navTo('detection-history.html')">📋 检测历史</el-button>
+            <el-button class="nav-btn" size="small" @click="navTo('tea-knowledge.html')">📚 茶树知识</el-button>
+        </div>
+        <div class="hd-user">
+            <span class="hd-username">👤 {{ authUser || '管理员' }}</span>
+            <el-button class="logout-btn" type="danger" size="small" plain @click="goLogin">退出</el-button>
+        </div>
+    </div>
+    <div class="app-content">
+    <div v-if="!allowed" style="padding:60px;text-align:center;">
+        <el-alert type="warning" title="无权访问" description="请使用管理员账号登录后重试。" show-icon :closable="false" />
+        <el-button style="margin-top:20px;" @click="goLogin">去登录</el-button>
+    </div>
+
+    <template v-else>
+        <!-- 页头 -->
+        <div class="page-head">
+            <h1 class="page-title">📋 系统日志</h1>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <el-button type="success" @click="doExport">导出 CSV</el-button>
+            </div>
+        </div>
+
+        <!-- 统计 -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">总记录数</div>
+                <div class="stat-value">{{ stats.total }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">管理员操作</div>
+                <div class="stat-value" style="color:#d97706;">{{ stats.admin }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">用户行为</div>
+                <div class="stat-value" style="color:#2563eb;">{{ stats.user }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">系统异常</div>
+                <div class="stat-value" style="color:#dc2626;">{{ stats.error }}</div>
+            </div>
+        </div>
+
+        <!-- 筛选栏 -->
+        <div class="filter-card">
+            <select v-model="filterType" class="native-select" @change="loadTable(true)">
+                <option value="">全部类型</option>
+                <option value="admin_action">管理员操作</option>
+                <option value="user_action">用户行为</option>
+                <option value="sys_error">系统异常</option>
+            </select>
+            <el-input v-model="filterOperator" placeholder="操作者" clearable style="width:130px;" @keyup.enter="loadTable(true)" />
+            <el-input v-model="filterQ" placeholder="搜索消息/动作" clearable style="width:180px;" @keyup.enter="loadTable(true)" />
+            <el-date-picker v-model="filterDateFrom" type="date" placeholder="开始日期"
+                value-format="YYYY-MM-DD" style="width:140px;" @change="loadTable(true)" />
+            <el-date-picker v-model="filterDateTo" type="date" placeholder="结束日期"
+                value-format="YYYY-MM-DD" style="width:140px;" @change="loadTable(true)" />
+            <el-button type="primary" @click="loadTable(true)">搜索</el-button>
+            <el-button @click="resetFilter">重置</el-button>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">ID</th>
+                        <th style="width:100px;">类型</th>
+                        <th style="width:90px;">操作者</th>
+                        <th style="width:140px;">动作</th>
+                        <th style="width:80px;">目标类型</th>
+                        <th style="width:80px;">目标ID</th>
+                        <th>消息</th>
+                        <th style="width:70px;">结果</th>
+                        <th style="width:155px;">时间</th>
+                        <th style="width:60px;">详情</th>
+                    </tr>
+                </thead>
+                <tbody v-if="rows.length">
+                    <tr v-for="row in rows" :key="row.id">
+                        <td>{{ row.id }}</td>
+                        <td>
+                            <span :class="['type-tag', typeClass(row.log_type)]">
+                                {{ typeLabel(row.log_type) }}
+                            </span>
+                        </td>
+                        <td>{{ row.operator || '-' }}</td>
+                        <td style="font-family:monospace;font-size:12px;">{{ row.action }}</td>
+                        <td>{{ row.target_type || '-' }}</td>
+                        <td>{{ row.target_id || '-' }}</td>
+                        <td :title="row.message">{{ row.message }}</td>
+                        <td>
+                            <span :class="['result-tag', resultClass(row.result)]">{{ row.result }}</span>
+                        </td>
+                        <td style="color:#6b7280;font-size:12px;">{{ row.created_at?.slice(0,19)?.replace('T',' ') }}</td>
+                        <td>
+                            <el-button link type="primary" size="small" @click="openDetail(row.id)">查看</el-button>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody v-else>
+                    <tr><td colspan="10" class="no-data">
+                        <span v-if="loading">加载中…</span>
+                        <span v-else>暂无日志，请先以管理员身份登录</span>
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        <div style="margin-top:16px;display:flex;justify-content:flex-end;">
+            <el-pagination
+                v-model:current-page="page"
+                v-model:page-size="pageSize"
+                :total="total"
+                :page-sizes="[20,50,100]"
+                layout="total, sizes, prev, pager, next"
+                background
+                @size-change="loadTable(true)"
+                @current-change="loadTable(false)"
+            />
+        </div>
+
+        <!-- 详情弹窗 -->
+        <el-dialog v-model="detailVisible" title="日志详情" width="600px">
+            <template v-if="detailData">
+                <div class="detail-row"><span class="detail-label">ID：</span>{{ detailData.id }}</div>
+                <div class="detail-row"><span class="detail-label">类型：</span>
+                    <span :class="['type-tag', typeClass(detailData.log_type)]">{{ typeLabel(detailData.log_type) }}</span>
+                </div>
+                <div class="detail-row"><span class="detail-label">操作者：</span>{{ detailData.operator || '-' }}</div>
+                <div class="detail-row"><span class="detail-label">动作：</span><code>{{ detailData.action }}</code></div>
+                <div class="detail-row"><span class="detail-label">目标：</span>{{ detailData.target_type || '-' }} / {{ detailData.target_id || '-' }}</div>
+                <div class="detail-row"><span class="detail-label">结果：</span>
+                    <span :class="['result-tag', resultClass(detailData.result)]">{{ detailData.result }}</span>
+                </div>
+                <div class="detail-row"><span class="detail-label">时间：</span>{{ detailData.created_at }}</div>
+                <div class="detail-row"><span class="detail-label">消息：</span>{{ detailData.message }}</div>
+                <div v-if="detailData.extra" class="detail-row">
+                    <div class="detail-label" style="margin-bottom:6px;">扩展信息：</div>
+                    <pre class="detail-pre">{{ JSON.stringify(detailData.extra, null, 2) }}</pre>
+                </div>
+            </template>
+            <template v-else>
+                <div style="text-align:center;padding:20px;color:#9ca3af;">加载中…</div>
+            </template>
+        </el-dialog>
+    </template>
+    </div><!-- /app-content -->
+</div>
+
+<script>
+const { createApp, ref, onMounted } = Vue;
+
+const UserCache = {
+    USER_KEY: 'yyxz_core_user_info',
+    getUser() {
+        try { return JSON.parse(localStorage.getItem(this.USER_KEY)); } catch { return null; }
+    },
+};
+
+createApp({
+    setup() {
+        const allowed  = ref(false);
+        const authUser = ref('');
+
+        const stats = ref({ total: 0, admin: 0, user: 0, error: 0 });
+        const loading = ref(false);
+        const rows    = ref([]);
+        const total   = ref(0);
+        const page    = ref(1);
+        const pageSize = ref(20);
+
+        const filterType     = ref('');
+        const filterOperator = ref('');
+        const filterQ        = ref('');
+        const filterDateFrom = ref('');
+        const filterDateTo   = ref('');
+
+        const detailVisible = ref(false);
+        const detailData    = ref(null);
+
+        function readAuth() {
+            const u = UserCache.getUser();
+            if (u && u.role === 'admin') {
+                authUser.value = u.username || '';
+                allowed.value = true;
+            }
+        }
+
+        function authHeader() {
+            return 'Bearer ' + (localStorage.getItem('yyxz_token') || '');
+        }
+
+        function apiGet(url) {
+            return fetch(url, { headers: { Authorization: authHeader() } }).then(r => r.json());
+        }
+
+        async function loadTable(resetPage) {
+            if (resetPage) page.value = 1;
+            loading.value = true;
+            try {
+                const p = new URLSearchParams({
+                    page: page.value, page_size: pageSize.value,
+                    log_type: filterType.value,
+                    operator: filterOperator.value,
+                    q: filterQ.value,
+                    time_from: filterDateFrom.value || '',
+                    time_to:   filterDateTo.value   || '',
+                });
+                const res = await apiGet('/api/admin/logs?' + p);
+                if (res.code === 200) {
+                    rows.value  = res.data.items;
+                    total.value = res.data.total;
+                    stats.value.total = res.data.total;
+                    stats.value.admin = rows.value.filter(r => r.log_type === 'admin_action').length;
+                    stats.value.user  = rows.value.filter(r => r.log_type === 'user_action').length;
+                    stats.value.error = rows.value.filter(r => r.log_type === 'sys_error').length;
+                } else {
+                    ElementPlus.ElMessage.error(res.message || '获取失败，请检查账号密码');
+                }
+            } catch (e) {
+                ElementPlus.ElMessage.error('请求失败：' + e.message);
+            } finally {
+                loading.value = false;
+            }
+        }
+
+        function resetFilter() {
+            filterType.value = ''; filterOperator.value = '';
+            filterQ.value = ''; filterDateFrom.value = ''; filterDateTo.value = '';
+            loadTable(true);
+        }
+
+        async function openDetail(id) {
+            detailData.value = null;
+            detailVisible.value = true;
+            const res = await apiGet(`/api/admin/logs/${id}`);
+            if (res.code === 200) detailData.value = res.data;
+            else ElementPlus.ElMessage.error(res.message);
+        }
+
+        function doExport() {
+            const p = new URLSearchParams({
+                log_type: filterType.value,
+                operator: filterOperator.value,
+                q: filterQ.value,
+                time_from: filterDateFrom.value || '',
+                time_to:   filterDateTo.value   || '',
+            });
+            fetch('/api/admin/logs/export?' + p, {
+                headers: { Authorization: 'Bearer ' + (localStorage.getItem('yyxz_token') || '') }
+            })
+                .then(r => r.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `sys_logs_${new Date().toISOString().slice(0,10)}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                })
+                .catch(e => ElementPlus.ElMessage.error('导出失败：' + e.message));
+        }
+
+        function typeLabel(t) {
+            return { admin_action: '管理员操作', user_action: '用户行为', sys_error: '系统异常' }[t] || t;
+        }
+        function typeClass(t) {
+            return { admin_action: 'type-admin', user_action: 'type-user', sys_error: 'type-error' }[t] || '';
+        }
+        function resultClass(r) {
+            return { success: 'result-success', fail: 'result-fail', error: 'result-error' }[r] || '';
+        }
+
+        function goBack()  { window.location.href = '/'; }
+        function goLogin() { window.location.href = '/login.html'; }
+        function navTo(page) { window.location.href = './' + page; }
+
+        onMounted(() => {
+            readAuth();
+            if (allowed.value) loadTable(true);
+        });
+
+        return {
+            allowed, authUser, stats,
+            loading, rows, total, page, pageSize,
+            filterType, filterOperator, filterQ, filterDateFrom, filterDateTo,
+            detailVisible, detailData,
+            loadTable, resetFilter, openDetail, doExport,
+            typeLabel, typeClass, resultClass,
+            goBack, goLogin, navTo,
+        };
+    }
+}).use(ElementPlus).mount('#app');
+</script>
+</body>
+</html>

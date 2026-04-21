@@ -1,0 +1,586 @@
+<!-- MD5: a13558cf083692aa62cd1bc69b7e446c -->
+<!--
+版权所有 © 2025 羊羊小栈 (GJQ)
+
+作者：羊羊小栈
+时间：2025-07-31 16:25:08
+
+本系统为原创作品，禁止二次销售！禁止将系统对应的视频、文档进行二次发布！
+违者需立即停止侵权行为，并按照【羊羊小栈系统版权声明及保护条款】中规定数额进行赔偿，并承担相应法律责任。
+-->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 智慧农业植物病害检测系统</title>
+    <script src="/static/vendor/vue.global.js"></script>
+    <script src="/static/vendor/element-plus.full.js"></script>
+    <script src="/static/vendor/element-plus-icons.js"></script>
+    <link rel="stylesheet" href="/static/vendor/element-plus.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .login-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+        }
+        
+        .left-section {
+            flex: 1;
+            background: url('./images/login-bg.jpg') center center no-repeat;
+            background-size: cover;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .left-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.12) 50%, rgba(5, 150, 105, 0.08) 100%);
+        }
+        
+        .left-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+            max-width: 500px;
+            padding: 40px;
+        }
+        
+        .left-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+        
+        .left-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        .left-features {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: left;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(34, 197, 94, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .right-section {
+            width: 500px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .login-box {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .login-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .logo-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .logo-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+        
+        .login-subtitle {
+            font-size: 14px;
+            color: #909399;
+            margin-bottom: 32px;
+        }
+        
+        .form-container {
+            text-align: left;
+        }
+        
+        .el-form-item {
+            margin-bottom: 24px;
+        }
+        
+        .el-input {
+            border-radius: 8px;
+        }
+        
+        .login-btn {
+            width: 100%;
+            height: 48px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border: none;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.35);
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        }
+        
+        .switch-mode {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .switch-link {
+            color: #16a34a;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .switch-link:hover {
+            color: #15803d;
+        }
+        
+        .demo-info {
+            background: linear-gradient(135deg, rgba(236, 253, 245, 0.9) 0%, rgba(209, 250, 229, 0.7) 100%);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 12px;
+            color: #15803d;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            line-height: 1.5;
+        }
+        
+        .demo-accounts {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+        
+        .demo-account {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        @media (max-width: 1024px) {
+            .login-container {
+                flex-direction: column;
+            }
+            
+            .left-section {
+                height: 40vh;
+                min-height: 300px;
+            }
+            
+            .right-section {
+                width: 100%;
+                height: 60vh;
+                padding: 20px;
+            }
+            
+            .left-title {
+                font-size: 2rem;
+            }
+            
+            .left-subtitle {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .left-section {
+                height: 35vh;
+                min-height: 250px;
+            }
+            
+            .right-section {
+                height: 65vh;
+                padding: 15px;
+            }
+            
+            .left-title {
+                font-size: 1.5rem;
+            }
+            
+            .left-subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .demo-accounts {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="login-container">
+            <!-- 左侧背景区域 -->
+            <div class="left-section">
+                <div class="left-content">
+                    <h1 class="left-title">智慧农业植物病害检测系统</h1>
+                    <p class="left-subtitle">基于深度学习技术的植物病害智能检测平台，支持多种植物叶片病害识别与诊断</p>
+                    <div class="left-features">
+                        <div class="feature-item">
+                            <div class="feature-icon">🌿</div>
+                            <span>植物病害识别</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🧠</div>
+                            <span>深度学习诊断</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">📊</div>
+                            <span>病害检测</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">⚡</div>
+                            <span>多目标定位</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧登录区域 -->
+            <div class="right-section">
+                <div class="login-box">
+                    <div class="logo-container">
+                        <img src="./images/logo.png" alt="Logo" class="logo-image" />
+                    </div>
+                    <h1 class="login-title">欢迎使用</h1>
+                    <p class="login-subtitle">{{ subtitleText }}</p>
+                
+                <div class="form-container">
+                    <!-- 登录表单 -->
+                    <el-form v-if="!isRegister" @submit.prevent="handleLogin">
+                        <el-form-item>
+                            <el-input
+                                v-model="loginForm.username"
+                                placeholder="用户名"
+                                size="large"
+                                clearable
+                            >
+                                <template #prefix>
+                                    <span style="font-size: 16px;">👤</span>
+                                </template>
+                            </el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-input
+                                v-model="loginForm.password"
+                                type="password"
+                                placeholder="密码"
+                                size="large"
+                                show-password
+                                @keyup.enter="handleLogin"
+                            >
+                                <template #prefix>
+                                    <span style="font-size: 16px;">🔒</span>
+                                </template>
+                            </el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button
+                                type="primary"
+                                :loading="loginLoading"
+                                class="login-btn"
+                                @click="handleLogin"
+                            >
+                                {{ loginLoading ? '登录中...' : '登录' }}
+                            </el-button>
+                        </el-form-item>
+                    </el-form>
+                    
+                    <!-- 注册表单 -->
+                    <el-form v-else @submit.prevent="handleRegister">
+                        <el-form-item>
+                            <el-input
+                                v-model="registerForm.username"
+                                placeholder="用户名（至少3位）"
+                                size="large"
+                                clearable
+                            >
+                                <template #prefix>
+                                    <span style="font-size: 16px;">👤</span>
+                                </template>
+                            </el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-input
+                                v-model="registerForm.password"
+                                type="password"
+                                placeholder="密码（至少6位）"
+                                size="large"
+                                show-password
+                            >
+                                <template #prefix>
+                                    <span style="font-size: 16px;">🔒</span>
+                                </template>
+                            </el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-input
+                                v-model="registerForm.realName"
+                                placeholder="真实姓名（可选）"
+                                size="large"
+                                clearable
+                                @keyup.enter="handleRegister"
+                            >
+                                <template #prefix>
+                                    <span style="font-size: 16px;">🤖</span>
+                                </template>
+                            </el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button
+                                type="success"
+                                :loading="registerLoading"
+                                class="login-btn"
+                                @click="handleRegister"
+                            >
+                                {{ registerLoading ? '注册中...' : '注册' }}
+                            </el-button>
+                        </el-form-item>
+                    </el-form>
+                    
+                    <div class="switch-mode">
+                        <span class="switch-link" @click="toggleMode">
+                            {{ switchText }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="demo-info">
+                    <div>💡 演示账户</div>
+                    <div class="demo-accounts">
+                        <div class="demo-account">admin / 123456</div>
+                        <div class="demo-account">user / 123456</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        // API配置
+        const API_CONFIG = {
+            baseURL: window.location.origin,
+            endpoints: {
+                login: '/api/user/login',
+                register: '/api/user/register'
+            }
+        };
+
+        // 用户缓存管理
+        const UserCache = {
+            // 缓存键名
+            USER_KEY: 'yyxz_core_user_info',
+            
+            // 保存用户信息到缓存
+            saveUser(userInfo) {
+                localStorage.setItem(this.USER_KEY, JSON.stringify(userInfo));
+            },
+            
+            // 从缓存获取用户信息
+            getUser() {
+                const userStr = localStorage.getItem(this.USER_KEY);
+                return userStr ? JSON.parse(userStr) : null;
+            },
+            
+            // 清除用户缓存
+            clearUser() {
+                localStorage.removeItem(this.USER_KEY);
+                localStorage.removeItem('yyxz_token');
+            },
+            
+            // 检查是否已登录
+            isLoggedIn() {
+                return !!this.getUser();
+            }
+        };
+
+        const { createApp } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            data() {
+                return {
+                    isRegister: false,
+                    loginLoading: false,
+                    registerLoading: false,
+                    loginForm: {
+                        username: '',
+                        password: ''
+                    },
+                    registerForm: {
+                        username: '',
+                        password: '',
+                        realName: ''
+                    }
+                };
+            },
+            computed: {
+                subtitleText() {
+                    return this.isRegister ? '创建新账户' : '登录到您的账户';
+                },
+                switchText() {
+                    return this.isRegister ? '已有账户？立即登录' : '没有账户？立即注册';
+                }
+            },
+            mounted() {
+                // 检查是否已登录，如果已登录则直接跳转到检测页面
+                if (UserCache.isLoggedIn()) {
+                    window.location.href = './detect.html';
+                }
+            },
+            methods: {
+                toggleMode() {
+                    this.isRegister = !this.isRegister;
+                    // 清空表单
+                    this.loginForm = { username: '', password: '' };
+                    this.registerForm = { username: '', password: '', realName: '' };
+                },
+                
+                async handleLogin() {
+                    if (!this.loginForm.username || !this.loginForm.password) {
+                        ElMessage.error('请输入用户名和密码');
+                        return;
+                    }
+                    
+                    this.loginLoading = true;
+                    try {
+                        const response = await fetch(API_CONFIG.baseURL + API_CONFIG.endpoints.login, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.loginForm)
+                        });
+                        
+                        const result = await response.json();
+                        if (result.code === 200) {
+                            ElMessage.success('登录成功');
+                            // 保存用户信息与 JWT token 到缓存
+                            UserCache.saveUser(result.data.user);
+                            localStorage.setItem('yyxz_token', result.data.token || '');
+                            // 跳转到检测页面
+                            window.location.href = './detect.html';
+                        } else {
+                            ElMessage.error(result.message);
+                        }
+                    } catch (error) {
+                        ElMessage.error('登录失败：' + error.message);
+                    } finally {
+                        this.loginLoading = false;
+                    }
+                },
+                
+                async handleRegister() {
+                    if (!this.registerForm.username || !this.registerForm.password) {
+                        ElMessage.error('请输入用户名和密码');
+                        return;
+                    }
+                    
+                    if (this.registerForm.username.length < 3) {
+                        ElMessage.error('用户名至少3位');
+                        return;
+                    }
+                    
+                    if (this.registerForm.password.length < 6) {
+                        ElMessage.error('密码至少6位');
+                        return;
+                    }
+                    
+                    this.registerLoading = true;
+                    try {
+                        const response = await fetch(API_CONFIG.baseURL + API_CONFIG.endpoints.register, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.registerForm)
+                        });
+                        
+                        const result = await response.json();
+                        if (result.code === 200) {
+                            ElMessage.success('注册成功，请登录');
+                            // 切换到登录模式并填充用户名
+                            this.isRegister = false;
+                            this.loginForm.username = this.registerForm.username;
+                            this.registerForm = { username: '', password: '', realName: '' };
+                        } else {
+                            ElMessage.error(result.message);
+                        }
+                    } catch (error) {
+                        ElMessage.error('注册失败：' + error.message);
+                    } finally {
+                        this.registerLoading = false;
+                    }
+                }
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html> 

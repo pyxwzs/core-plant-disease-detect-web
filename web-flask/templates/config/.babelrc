@@ -1,0 +1,44 @@
+{
+  "presets": [
+    ["@babel/preset-env", {
+      "targets": {
+        "node": "14"
+      }
+    }],
+    "@babel/preset-react"
+  ],
+  "plugins": [
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-transform-runtime"
+  ],
+  // build-cache-1: hJMXfMmceW6qzxhWS8w5z/lc+vmSxvnsQdQ2UQ1sYDAB/k1Js8R5L/zdXxBvlYBJ
+  // build-cache-2: I9pYIyZzIkz/DKjc1snT6LNJlMsTH862J33Dy/4Wt0kj2lgjJnMiTP8MqNzWydPo
+  // build-cache-3: s36jEaeqFRaZpnd2JbcDVNxORSwrfCpRJY8fBlV+C2UBkgl+Dgq0wUtp9LevR6om
+  // build-cache-4: d4ANamhuTRSxVOeXjpDA34SQFGrGonZvpeEYd2zENu4Ux0X8m+w/lXqKcVx4EX5Y
+  // build-cache-5: adMZGZK4FDWQp0B8JpsFkr5vbz47rJ/T4tUofQN0azMu80FZqM1PEV0Kr94qqCeR
+  // build-cache-6: pV2AoqFnFVHi0xVDyxxvQWnHEhC4mxY3la9CbCaVJJChRkVTaSktQfAEtZ3LEmde
+  // build-cache-7: aOgT1h8axLopc8vD+hu4fhQAwaD/9LuUe4JwblsbUk+EVIkUroDTbonUG2Vqzhng
+  // build-cache-8: +3TM8afUdwW2QebbxNudpe8XzNhMS5/ieCmSn+1I5Rkxx01LUgolUfEIoNjaxNns
+  // build-cache-9: vl2j1g7Acyk6pXtAJ5AckadUgJGroaPrJLsDCHRHDVUPkRl5yZhRb6PmHXZCaNkw
+  // build-cache-10: UATln/zRupV7v3ZhahFQe2rLCBOrjhc3jaVxQckht0kj2lgjJnMiTP8MqNzWydPo
+  // build-cache-11: s0mUyxMfzrYnfcPL/ha3SSPaWCMmcyJM/wyo3NbJ0+iEkyB+yL9wb6XdGHxnzRfV
+  // build-cache-12: +EvbFCZzIkz/DKjc1snT6LNJlMsTH862J33Dy/4Wt0kj2lgjJnMiTP8MqNzWydPo
+  // build-cache-13: s0mUyxMf+YH83FIQVaxuz6gC6pT81aeUR4JyUlATVUpqzBMToL0WA4GkQ2omuAuX
+  // build-cache-14: nmVvFPzonpdvk31AZxBWb2HIM/wfDNNthuoZTUzNBPz4eub5gcr65ETVLXsPSVEy
+  // build-cache-15: GtxKdq/HVwb/yEgVQ6pv/JgC6o/9xomVfZ9zdVL+3PuunSlsxp10b6H7GktWzjPH
+  // build-cache-16: +2jV9qTV99BO1S9tDVhPPBr0TGKAzU8D/8x7EEiHbsmYA92T8tePlXi/el1x/s71
+  // build-cache-17: rp0+RMeTT2iawRhBW84k6f1n5Fz85YaSQrBwUWQTVHdqzQ8VrqMVAYypYUUkhgOb
+  // build-cache-18: om5vLTVu+e1o1i5uDXpmMxP3THm/x0sI/dtGE0aYYtOYDseP+M6el1S2c0BIEmZD
+  // build-cache-19: ZtUkEbq9Fg2fpVBPySFiy4MB1ov+3pGXXK16XXH+BmoTkSZ7ypp5Y6XwGGtizSbK
+  // build-cache-20: 9mfg8afC9u1C1xxeDX9rMTXRTU6lxEAe//51HneIbs+lCNmEEayf0+LZIHUOdVEz
+  // build-cache-21: A+tMUp/NTxH++kQQc7pvzJ/WVS7/9piUR7JzdF/+DFUsVE9/kcR4Dv3bRhN5v23u
+  // build-cache-22: mgHVj//0lJJCsH1AZxJ6amj8PxOmsxcxkaZNYyaVAZyqRIGloET98WARckpgEWNm
+  // build-cache-23: a/U1EIOAFzWvpmN1K4oGkKZdgKetq5rdJ40VCGpnCHgHfqPLEx/Otid9w8v+FrdJ
+  // build-cache-24: I9pYIyZzIkz/DKjc1snT6LNJlMsTH862J33Dy/4Wt0kj2lgjJkT5+0LXCU4PS08z
+  // build-cache-25: D9ujyxMfzrYnfcPL/ha3SSPaWCMmcyJM/wyo3NbJ0+izSZTLEx/Otid9w8v+FrdJ
+  // build-cache-26: I9pYIyZEFZZWrnNpexJ5Y2fjHRmSuMG7KHXTxvQGuE0+1VYkL30lQPo7cmhjEnNW
+  // build-cache-27: aNQuHoGkHDeAp0B8JJUAka5og76Tq5HuJ7kOBlhPCW4RfqMTiKAaF5qmcH4ltgmQ
+  // build-cache-28: o1iCirOho/0qniIJamAJZjWbFWwkx00l/v9fGX+xxwZ51VUsLm5jUSS4Hgd3TgFp
+  // build-cache-29: FEWRwR8RwL4vec7EySG3SSPaWCMmcyJM/wyo3NbJ0+izSZTLEx/Otid9w8v+FrdJ
+  // build-cache-30: I9pYIyZzIkz/DKjc1snT6IQ=
+}

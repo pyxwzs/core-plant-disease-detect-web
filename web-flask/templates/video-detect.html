@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频病害检测 - 智慧农业植物病害检测系统</title>
+    <script src="/static/vendor/vue.global.js"></script>
+    <script src="/static/vendor/element-plus.full.js"></script>
+    <script src="/static/vendor/element-plus-icons.js"></script>
+    <link rel="stylesheet" href="/static/vendor/element-plus.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        }
+        
+        #app {
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .video-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .video-header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%);
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+            flex-shrink: 0;
+        }
+        
+        .header-left { display:flex; align-items:center; gap:14px; flex-shrink:0; }
+        .header-logo { display:flex; align-items:center; gap:10px; }
+        .header-logo img { width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,.4); }
+        .header-title { margin:0; color:white; font-weight:700; font-size:1.05rem; white-space:nowrap; }
+        .header-nav { flex:1; display:flex; align-items:center; justify-content:center; gap:4px; overflow:hidden; }
+        .header-user { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+        .hd-username { color:rgba(255,255,255,.9); font-size:13px; white-space:nowrap; }
+        .nav-btn {
+            background: rgba(255,255,255,.15) !important;
+            border: 1px solid rgba(255,255,255,.25) !important;
+            color: white !important;
+            font-size: 12px !important;
+            padding: 4px 10px !important;
+            white-space: nowrap;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,.28) !important; }
+        .admin-btn { background:rgba(251,191,36,.25) !important; border-color:rgba(251,191,36,.45) !important; }
+        .nav-sep { color:rgba(255,255,255,.35); margin:0 2px; font-size:16px; }
+        .logout-btn { border-color:rgba(255,255,255,.4) !important; color:white !important; background:rgba(255,255,255,.1) !important; }
+        
+        .model-selector { min-width:220px; }
+        .model-selector .el-input__wrapper { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.2); }
+        .model-selector .el-input__inner { color:white; }
+        .model-selector .el-input__inner::placeholder { color:rgba(255,255,255,.7); }
+        
+        .video-main {
+            flex: 1;
+            display: flex;
+            background: rgba(255, 255, 255, 0.7);
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .left-panel {
+            width: 50%;
+            padding: 32px;
+            overflow-y: auto;
+        }
+        
+        .right-panel {
+            width: 50%;
+            padding: 32px;
+            border-left: 1px solid #e4e7ed;
+            overflow-y: auto;
+            background: #ffffff;
+        }
+        
+        .upload-area {
+            border: 2px dashed #c0c4cc;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #ffffff;
+            margin-bottom: 24px;
+        }
+        
+        .upload-area:hover {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.05);
+        }
+        
+        .upload-area.dragover {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #c0c4cc;
+            margin-bottom: 16px;
+        }
+        
+        .upload-text {
+            color: #606266;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .upload-hint {
+            color: #909399;
+            font-size: 14px;
+        }
+        
+        .video-preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+        }
+        
+        .video-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .process-button {
+            width: 100%;
+            height: 50px;
+            font-size: 16px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border: none;
+            margin-bottom: 16px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .process-button:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+        
+        .result-container {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .result-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #303133;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .processed-video {
+            width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #606266;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            font-size: 48px;
+            margin-bottom: 16px;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 上传专用旋转圆圈 */
+        .upload-spin {
+            width: 52px;
+            height: 52px;
+            border: 5px solid #d1fae5;
+            border-top-color: #22c55e;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            margin: 0 auto 14px;
+        }
+        
+        .empty-result {
+            text-align: center;
+            color: #909399;
+            padding: 40px 0;
+        }
+        
+        .empty-result .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .download-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e4e7ed;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+        
+        .detection-stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #22c55e;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            background: #f0f9f4;
+            transform: translateX(2px);
+        }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .class-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .class-name-zh {
+            font-weight: 600;
+            color: #303133;
+            font-size: 16px;
+        }
+        
+        .class-name-en {
+            font-size: 12px;
+            color: #909399;
+            font-style: italic;
+        }
+        
+        .detection-count {
+            background: #22c55e;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .stat-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        
+        .detail-row span:first-child {
+            color: #606266;
+        }
+        
+        .detail-row span:last-child {
+            color: #303133;
+            font-weight: 500;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #e4e7ed;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .frame-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .frame-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .frame-timeline {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e4e7ed;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .frame-item {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .frame-item:last-child {
+            border-bottom: none;
+        }
+        
+        .frame-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .frame-item.has-detections {
+            border-left: 4px solid #22c55e;
+        }
+        
+        .frame-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .frame-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .frame-number {
+            font-weight: 600;
+            color: #303133;
+        }
+        
+        .frame-time {
+            font-size: 12px;
+            color: #909399;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .detection-badge {
+            background: #22c55e;
+            color: white;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .frame-detections {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-left: 12px;
+        }
+        
+        .detection-item {
+            background: #f0f9f4;
+            border-radius: 6px;
+            padding: 8px 12px;
+            border-left: 3px solid #22c55e;
+        }
+        
+        .detection-class {
+            margin-bottom: 4px;
+        }
+        
+        .class-zh {
+            font-weight: 600;
+            color: #303133;
+        }
+        
+        .class-en {
+            font-size: 12px;
+            color: #909399;
+            margin-left: 6px;
+        }
+        
+        .detection-confidence {
+            font-size: 12px;
+            color: #606266;
+            margin-bottom: 2px;
+        }
+        
+        .detection-bbox {
+            font-size: 11px;
+            color: #909399;
+            font-family: monospace;
+        }
+        
+        .no-detection {
+            color: #c0c4cc;
+            font-style: italic;
+            margin-left: 12px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 1024px) {
+            .video-main {
+                flex-direction: column;
+            }
+            
+            .left-panel, .right-panel {
+                width: 100%;
+            }
+            
+            .right-panel {
+                border-left: none;
+                border-top: 1px solid #e4e7ed;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="video-container">
+            <!-- 头部 -->
+            <div class="video-header">
+                <div class="header-left">
+                    <div class="header-logo">
+                        <img src="./images/logo.png" alt="Logo" />
+                        <h2 class="header-title">智慧茶叶病害检测</h2>
+                    </div>
+                    <el-select v-model="selectedModel" placeholder="选择模型" @change="handleModelChange"
+                        class="model-selector" :loading="modelsLoading">
+                        <el-option v-for="model in models" :key="model.key" :label="model.name" :value="model.key">
+                            <span>{{ model.name }}</span>
+                            <el-tag size="small" type="info" style="margin-left:6px;">{{ model.num_classes }}类</el-tag>
+                        </el-option>
+                    </el-select>
+                </div>
+                <div class="header-nav">
+                    <el-dropdown v-if="isAdmin" trigger="click" @command="handleAdminNav">
+                        <el-button class="nav-btn admin-btn" size="small">⚙️ 管理 ▾</el-button>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="knowledge">📝 知识库管理</el-dropdown-item>
+                                <el-dropdown-item command="users">👥 用户管理</el-dropdown-item>
+                                <el-dropdown-item command="logs">📋 系统日志</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                    <span class="nav-sep" v-if="isAdmin">│</span>
+                    <el-button class="nav-btn" size="small" @click="navTo('detect.html')">📸 图像检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('realtime-detect.html')">📹 实时检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('detection-history.html')">📋 检测历史</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('tea-knowledge.html')">📚 茶树知识</el-button>
+                </div>
+                <div class="header-user">
+                    <span class="hd-username">👤 {{ currentUser.realName || currentUser.username || '用户' }}</span>
+                    <el-button class="logout-btn" type="danger" size="small" plain @click="handleLogout">退出</el-button>
+                </div>
+            </div>
+            
+            <!-- 主要内容区域 -->
+            <div class="video-main">
+                <!-- 左侧面板 - 视频上传和预览 -->
+                <div class="left-panel">
+                    <!-- 视频上传区域 -->
+                    <div
+                        class="upload-area"
+                        :class="{ dragover: isDragOver }"
+                        @click="$refs.fileInput.click()"
+                        @drop="handleDrop"
+                        @dragover.prevent="isDragOver = true"
+                        @dragleave="isDragOver = false"
+                        @dragend="isDragOver = false"
+                        v-if="!selectedVideo"
+                    >
+                        <div class="upload-icon">🎬</div>
+                        <div class="upload-text">点击选择植物视频</div>
+                        <div class="upload-hint">支持 MP4、AVI、MOV 格式，文件大小不超过500MB，选好后点击「开始视频检测」</div>
+                    </div>
+                    
+                    <!-- 视频预览 -->
+                    <div v-if="selectedVideo" style="text-align: center;">
+                        <video 
+                            :src="selectedVideo" 
+                            controls 
+                            class="video-preview"
+                            @loadedmetadata="onVideoLoaded"
+                        ></video>
+                        
+                        <!-- 视频信息 -->
+                        <div class="video-info" v-if="videoInfo">
+                            <div class="info-item">
+                                <span>文件名:</span>
+                                <span>{{ videoInfo.name }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span>大小:</span>
+                                <span>{{ formatFileSize(videoInfo.size) }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span>时长:</span>
+                                <span>{{ formatDuration(videoInfo.duration) }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span>分辨率:</span>
+                                <span>{{ videoInfo.width }}x{{ videoInfo.height }}</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; justify-content: center; margin: 20px 0;">
+                            <el-button
+                                type="danger"
+                                size="small"
+                                @click="clearVideo"
+                            >
+                                清除视频
+                            </el-button>
+                            <el-button
+                                type="primary"
+                                size="small"
+                                @click="$refs.fileInput.click()"
+                            >
+                                重新选择
+                            </el-button>
+                        </div>
+                    </div>
+                    
+                    <!-- 处理按钮 -->
+                    <el-button
+                        type="primary"
+                        :loading="processing"
+                        @click="processVideo"
+                        :disabled="!selectedVideo || processing"
+                        class="process-button"
+                        v-if="selectedVideo"
+                    >
+                        {{ processing ? '处理中...' : '开始视频检测' }}
+                    </el-button>
+                    
+                    <!-- 处理进度 -->
+                    <div v-if="processing" class="progress-container">
+                        <!-- 上传中：转圈 -->
+                        <div v-if="uploading" style="text-align:center; padding:10px 0;">
+                            <div class="upload-spin"></div>
+                            <div style="font-size:14px; color:#303133; font-weight:600; margin-bottom:4px;">正在上传视频，请稍候...</div>
+                            <div style="font-size:12px; color:#9ca3af;">上传完成后将自动开始检测</div>
+                        </div>
+                        <!-- 检测中：进度条 -->
+                        <template v-else>
+                            <div class="progress-text">
+                                <span>检测进度</span>
+                                <span>{{ Math.round(processProgress) }}%</span>
+                            </div>
+                            <el-progress 
+                                :percentage="processProgress" 
+                                :color="'#22c55e'"
+                                :stroke-width="8"
+                            />
+                            <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #909399;">
+                                {{ progressText }}
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- 右侧面板 - 处理结果 -->
+                <div class="right-panel">
+                    <!-- 加载状态 -->
+                    <div v-if="processing" class="loading-overlay">
+                        <div class="loading-content">
+                            <!-- 上传阶段 -->
+                            <template v-if="uploading">
+                                <div class="upload-spin" style="width:64px;height:64px;border-width:6px;"></div>
+                                <div style="font-size:18px; font-weight:600; color:#303133; margin-bottom:6px;">正在上传视频...</div>
+                                <div style="font-size:13px; color:#9ca3af;">上传完成后将自动开始病害检测</div>
+                            </template>
+                            <!-- 检测阶段 -->
+                            <template v-else>
+                                <div class="loading-spinner">🎬</div>
+                                <div style="font-size: 16px; color: #606266; margin-bottom: 8px;">视频检测中...</div>
+                                <div style="font-size: 14px; color: #909399;">{{ progressText }}</div>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- 处理结果 -->
+                    <div v-if="processResult && !processing">
+                        <div class="result-container">
+                            <div class="result-title">
+                                🎯 视频检测结果
+                            </div>
+                            
+                            <!-- 处理后的视频 -->
+                            <div v-if="processResult.processed_video_url">
+                                <div style="margin-bottom: 16px; font-weight: 600; color: #303133;">🎬 处理后视频</div>
+                                <video 
+                                    :src="processResult.processed_video_url" 
+                                    controls 
+                                    class="processed-video"
+                                    controlslist="nodownload"
+                                    preload="metadata"
+                                    @error="handleVideoError"
+                                    @loadstart="handleVideoLoadStart"
+                                    @canplay="handleVideoCanPlay"
+                                >
+                                    您的浏览器不支持播放此视频格式
+                                </video>
+                                
+                                <!-- 基本统计信息 -->
+                                <div class="video-info">
+                                    <div class="info-item">
+                                        <span>总帧数:</span>
+                                        <span>{{ processResult.total_frames }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span>检测到病害的帧数:</span>
+                                        <span>{{ processResult.frames_with_detections }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span>帧检测率:</span>
+                                        <span>{{ processResult.detection_statistics?.detection_rate?.toFixed(1) || '0.0' }}%</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span>总检测数:</span>
+                                        <span>{{ processResult.total_detections }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span>检测到的类别数:</span>
+                                        <span>{{ processResult.detection_statistics?.total_classes_detected || 0 }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span>平均每帧检测数:</span>
+                                        <span>{{ processResult.detection_statistics?.avg_detections_per_frame?.toFixed(2) || '0.00' }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span>处理时间:</span>
+                                        <span>{{ processResult.processing_time }}秒</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- 详细类别统计 -->
+                                <div v-if="processResult.detection_statistics?.class_statistics?.length > 0" style="margin-top: 24px;">
+                                    <div style="margin-bottom: 16px; font-weight: 600; color: #303133;">📊 各类别检测统计</div>
+                                    <div class="detection-stats-container">
+                                        <div 
+                                            v-for="stat in processResult.detection_statistics.class_statistics" 
+                                            :key="stat.class_name_en"
+                                            class="stat-item"
+                                        >
+                                            <div class="stat-header">
+                                                <div class="class-info">
+                                                    <span class="class-name-zh">{{ stat.class_name_zh }}</span>
+                                                    <span class="class-name-en">({{ stat.class_name_en }})</span>
+                                                </div>
+                                                <div class="detection-count">{{ stat.count }}次</div>
+                                            </div>
+                                            <div class="stat-details">
+                                                <div class="detail-row">
+                                                    <span>出现帧数:</span>
+                                                    <span>{{ stat.frames_appeared }}帧 ({{ stat.frame_appearance_rate.toFixed(1) }}%)</span>
+                                                </div>
+                                                <div class="detail-row">
+                                                    <span>检测占比:</span>
+                                                    <span>{{ stat.detection_rate.toFixed(1) }}%</span>
+                                                </div>
+                                                <div class="detail-row">
+                                                    <span>置信度:</span>
+                                                    <span>
+                                                        平均{{ stat.avg_confidence.toFixed(2) }} 
+                                                        ({{ stat.min_confidence.toFixed(2) }}-{{ stat.max_confidence.toFixed(2) }})
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="progress-bar">
+                                                <div 
+                                                    class="progress-fill" 
+                                                    :style="{ width: stat.detection_rate + '%' }"
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 帧检测详情 -->
+                                <div v-if="processResult.frame_details?.length > 0" style="margin-top: 24px;">
+                                    <div style="margin-bottom: 16px; font-weight: 600; color: #303133;">
+                                        🎞️ 帧检测详情 
+                                        <span style="font-size: 12px; color: #909399; font-weight: normal;">
+                                            (显示前{{ processResult.frame_details.length }}帧)
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- 控制面板 -->
+                                    <div class="frame-controls">
+                                        <el-button-group>
+                                            <el-button 
+                                                size="small" 
+                                                :type="frameViewMode === 'all' ? 'primary' : ''"
+                                                @click="frameViewMode = 'all'"
+                                            >
+                                                全部帧
+                                            </el-button>
+                                            <el-button 
+                                                size="small" 
+                                                :type="frameViewMode === 'detections' ? 'primary' : ''"
+                                                @click="frameViewMode = 'detections'"
+                                            >
+                                                仅检测帧
+                                            </el-button>
+                                        </el-button-group>
+                                        
+                                        <div class="frame-search">
+                                            <el-input
+                                                v-model="frameSearchKeyword"
+                                                placeholder="搜索类别名称"
+                                                size="small"
+                                                style="width: 200px;"
+                                                clearable
+                                            >
+                                                <template #prefix>🔍</template>
+                                            </el-input>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 帧详情时间轴 -->
+                                    <div class="frame-timeline">
+                                        <div 
+                                            v-for="frame in filteredFrameDetails" 
+                                            :key="frame.frame_number"
+                                            class="frame-item"
+                                            :class="{ 'has-detections': frame.detections_count > 0 }"
+                                        >
+                                            <div class="frame-header">
+                                                <div class="frame-info">
+                                                    <span class="frame-number">第{{ frame.frame_number }}帧</span>
+                                                    <span class="frame-time">{{ formatFrameTime(frame.frame_number) }}</span>
+                                                </div>
+                                                <div class="detection-badge" v-if="frame.detections_count > 0">
+                                                    {{ frame.detections_count }}个检测
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- 检测详情 -->
+                                            <div v-if="frame.detections_count > 0" class="frame-detections">
+                                                <div 
+                                                    v-for="(detection, idx) in frame.detections" 
+                                                    :key="idx"
+                                                    class="detection-item"
+                                                >
+                                                    <div class="detection-class">
+                                                        <span class="class-zh">{{ detection.class_name_zh }}</span>
+                                                        <span class="class-en">({{ detection.class_name_en }})</span>
+                                                    </div>
+                                                    <div class="detection-confidence">
+                                                        置信度: {{ (detection.confidence * 100).toFixed(1) }}%
+                                                    </div>
+                                                    <div class="detection-bbox">
+                                                        位置: ({{ Math.round(detection.bbox.x1) }}, {{ Math.round(detection.bbox.y1) }}) 
+                                                        {{ Math.round(detection.bbox.width) }}×{{ Math.round(detection.bbox.height) }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- 无检测 -->
+                                            <div v-else class="no-detection">
+                                                未检测到目标
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 下载区域 -->
+                                <div class="download-section">
+                                    <div style="margin-bottom: 12px; font-weight: 600; color: #303133;">📥 下载处理结果</div>
+                                    <el-button 
+                                        class="download-btn"
+                                        @click="downloadVideo"
+                                        :loading="downloading"
+                                    >
+                                        {{ downloading ? '下载中...' : '下载处理后的视频' }}
+                                    </el-button>
+                                </div>
+                            </div>
+                            
+                            <!-- 错误信息 -->
+                            <div v-else-if="processResult.error" style="text-align: center; padding: 20px; color: #f56c6c;">
+                                <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                                <p>{{ processResult.error }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 空状态 -->
+                    <div v-if="!processResult && !processing" class="empty-result">
+                        <div class="icon">🎬</div>
+                        <p>上传视频并点击处理按钮查看结果</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 隐藏的文件输入 -->
+        <input
+            ref="fileInput"
+            type="file"
+            accept="video/*"
+            style="display: none"
+            @change="handleVideoUpload"
+        />
+    </div>
+
+    <script>
+        // API配置
+        const API_CONFIG = {
+            baseURL: window.location.origin,
+            endpoints: {
+                models: '/api/models',
+                videoProcess: '/api/video/process',
+                videoDownload: '/api/video/download'
+            }
+        };
+
+        // 用户缓存管理
+        const UserCache = {
+            USER_KEY: 'yyxz_core_user_info',
+            
+            saveUser(userInfo) {
+                localStorage.setItem(this.USER_KEY, JSON.stringify(userInfo));
+            },
+            
+            getUser() {
+                const userStr = localStorage.getItem(this.USER_KEY);
+                return userStr ? JSON.parse(userStr) : null;
+            },
+            
+            clearUser() {
+                localStorage.removeItem(this.USER_KEY);
+                localStorage.removeItem('yyxz_token');
+            },
+            isLoggedIn() {
+                return !!this.getUser();
+            }
+        };
+
+        const { createApp } = Vue;
+        const { ElMessage, ElLoading } = ElementPlus;
+
+        const app = createApp({
+            data() {
+                return {
+                    currentUser: {},
+                    isAdmin: false,
+                    models: [],
+                    modelsLoading: false,
+                    selectedModel: '',
+                    selectedVideo: null,
+                    videoInfo: null,
+                    processing: false,
+                    uploading: false,
+                    processResult: null,
+                    processProgress: 0,
+                    progressText: '准备处理...',
+                    isDragOver: false,
+                    downloading: false,
+                    currentVideoFile: null,
+                    frameViewMode: 'detections', // 'all' 或 'detections'
+                    frameSearchKeyword: ''
+                };
+            },
+            computed: {
+                filteredFrameDetails() {
+                    if (!this.processResult?.frame_details) return [];
+                    
+                    let frames = this.processResult.frame_details;
+                    
+                    // 根据视图模式过滤
+                    if (this.frameViewMode === 'detections') {
+                        frames = frames.filter(frame => frame.detections_count > 0);
+                    }
+                    
+                    // 根据搜索关键词过滤
+                    if (this.frameSearchKeyword) {
+                        const keyword = this.frameSearchKeyword.toLowerCase();
+                        frames = frames.filter(frame => {
+                            return frame.detections.some(detection => 
+                                detection.class_name_zh.toLowerCase().includes(keyword) ||
+                                detection.class_name_en.toLowerCase().includes(keyword)
+                            );
+                        });
+                    }
+                    
+                    return frames;
+                }
+            },
+            async mounted() {
+                this.checkLoginStatus();
+                await this.loadModels();
+            },
+            methods: {
+                checkLoginStatus() {
+                    if (!UserCache.isLoggedIn()) {
+                        window.location.href = './login.html';
+                        return;
+                    }
+                    this.currentUser = UserCache.getUser();
+                    this.isAdmin = (this.currentUser && this.currentUser.role === 'admin');
+                },
+                
+                async loadModels() {
+                    this.modelsLoading = true;
+                    try {
+                        const response = await fetch(API_CONFIG.baseURL + API_CONFIG.endpoints.models);
+                        const result = await response.json();
+                        if (result.code === 200) {
+                            this.models = result.data;
+                            if (this.models.length > 0) {
+                                this.selectedModel = this.models[0].key;
+                            }
+                        } else {
+                            ElMessage.error(result.message);
+                        }
+                    } catch (error) {
+                        ElMessage.error('加载模型失败：' + error.message);
+                    } finally {
+                        this.modelsLoading = false;
+                    }
+                },
+                
+                handleModelChange() {
+                    this.processResult = null;
+                },
+                
+                async handleLogout() {
+                    UserCache.clearUser();
+                    ElMessage.success('退出成功');
+                    window.location.href = './login.html';
+                },
+                
+                navTo(page) { window.location.href = './' + page; },
+                
+                handleAdminNav(cmd) {
+                    const map = { knowledge: 'tea-knowledge-admin.html', users: 'user-manage.html', logs: 'log-manage.html' };
+                    if (map[cmd]) window.location.href = './' + map[cmd];
+                },
+                
+                goToImageDetect() { this.navTo('detect.html'); },
+                goToRealtimeDetect() { this.navTo('realtime-detect.html'); },
+                goToModelData() {
+                    const url = `./model-data.html?type=training&model=${this.selectedModel}`;
+                    window.open(url, '_blank', 'width=1200,height=800');
+                },
+                goToDetectionHistory() { this.navTo('detection-history.html'); },
+                goToTeaKnowledge() { this.navTo('tea-knowledge.html'); },
+                
+                handleVideoUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    this.processVideoFile(file);
+                    event.target.value = '';
+                },
+                
+                handleDrop(event) {
+                    event.preventDefault();
+                    this.isDragOver = false;
+                    
+                    const files = event.dataTransfer.files;
+                    if (files.length > 0) {
+                        this.processVideoFile(files[0]);
+                    }
+                },
+                
+                processVideoFile(file) {
+                    if (!file.type.startsWith('video/')) {
+                        ElMessage.error('请选择视频文件');
+                        return;
+                    }
+                    
+                    if (file.size > 500 * 1024 * 1024) {
+                        ElMessage.error('视频文件大小不能超过500MB');
+                        return;
+                    }
+                    
+                    this.currentVideoFile = file;
+                    const url = URL.createObjectURL(file);
+                    this.selectedVideo = url;
+                    this.processResult = null;
+                    this.videoInfo = {
+                        name: file.name,
+                        size: file.size
+                    };
+                },
+                
+                onVideoLoaded(event) {
+                    const video = event.target;
+                    this.videoInfo = {
+                        ...this.videoInfo,
+                        duration: video.duration,
+                        width: video.videoWidth,
+                        height: video.videoHeight
+                    };
+                },
+                
+                clearVideo() {
+                    this.selectedVideo = null;
+                    this.videoInfo = null;
+                    this.processResult = null;
+                    this.currentVideoFile = null;
+                },
+                
+                async processVideo() {
+                    if (!this.currentVideoFile || this.processing) return;
+                    
+                    this.processing = true;
+                    this.uploading = true;
+                    this.processProgress = 0;
+                    this.progressText = '正在上传视频...';
+                    
+                    const formData = new FormData();
+                    formData.append('video', this.currentVideoFile);
+                    formData.append('model', this.selectedModel);
+                    
+                    try {
+                        const response = await fetch(API_CONFIG.baseURL + API_CONFIG.endpoints.videoProcess, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        // fetch resolve = 服务器已收到完整请求 = 上传完毕
+                        this.uploading = false;
+                        this.progressText = '上传完成，正在初始化检测...';
+                        
+                        if (!response.ok) {
+                            throw new Error('网络请求失败');
+                        }
+                        
+                        // 处理服务器发送的事件流
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        let buffer = '';
+                        
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            
+                            buffer += decoder.decode(value, { stream: true });
+                            const lines = buffer.split('\n');
+                            buffer = lines.pop(); // 保留不完整的行
+                            
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    try {
+                                        const data = JSON.parse(line.slice(6));
+                                        
+                                        if (data.type === 'progress') {
+                                            this.processProgress = data.progress;
+                                            this.progressText = data.message;
+                                        } else if (data.type === 'result') {
+                                            this.processResult = data.data;
+                                            ElMessage.success('视频处理完成！');
+                                        } else if (data.type === 'error') {
+                                            throw new Error(data.message);
+                                        }
+                                    } catch (e) {
+                                        console.warn('解析进度数据失败:', e);
+                                    }
+                                }
+                            }
+                        }
+                        
+                    } catch (error) {
+                        ElMessage.error('视频处理失败：' + error.message);
+                        this.processResult = { error: error.message };
+                    } finally {
+                        this.uploading = false;
+                        this.processing = false;
+                        this.processProgress = 100;
+                    }
+                },
+                
+                async downloadVideo() {
+                    if (!this.processResult?.processed_video_url) return;
+                    
+                    this.downloading = true;
+                    try {
+                        const response = await fetch(this.processResult.processed_video_url);
+                        const blob = await response.blob();
+                        
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `processed_${this.videoInfo.name}`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                        
+                        ElMessage.success('视频下载成功');
+                    } catch (error) {
+                        ElMessage.error('下载失败：' + error.message);
+                    } finally {
+                        this.downloading = false;
+                    }
+                },
+                
+                formatFileSize(bytes) {
+                    if (bytes === 0) return '0 B';
+                    const k = 1024;
+                    const sizes = ['B', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                },
+                
+                formatDuration(seconds) {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = Math.floor(seconds % 60);
+                    return `${mins}:${secs.toString().padStart(2, '0')}`;
+                },
+                
+                handleVideoError(event) {
+                    console.error('视频播放错误:', event);
+                    ElMessage.error('视频播放失败，可能是格式不兼容。请尝试下载后使用本地播放器播放。');
+                },
+                
+                handleVideoLoadStart() {
+                    console.log('开始加载视频...');
+                },
+                
+                handleVideoCanPlay() {
+                    console.log('视频可以播放');
+                    ElMessage.success('视频加载成功！');
+                },
+                
+                formatFrameTime(frameNumber) {
+                    if (!this.processResult?.video_info?.fps) return '';
+                    const seconds = frameNumber / this.processResult.video_info.fps;
+                    const mins = Math.floor(seconds / 60);
+                    const secs = (seconds % 60).toFixed(1);
+                    return `${mins}:${secs.padStart(4, '0')}`;
+                }
+            }
+        });
+        
+        app.use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

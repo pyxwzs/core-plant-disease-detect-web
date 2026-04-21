@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>茶树病虫害知识 - 智慧农业植物病害检测系统</title>
+    <script src="/static/vendor/vue.global.js"></script>
+    <script src="/static/vendor/element-plus.full.js"></script>
+    <link rel="stylesheet" href="/static/vendor/element-plus.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        }
+        #app { height: 100vh; overflow: hidden; }
+        .classify-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .classify-header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%);
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+            flex-shrink: 0;
+        }
+        .header-left { display:flex; align-items:center; gap:14px; flex-shrink:0; }
+        .header-logo { display:flex; align-items:center; gap:10px; }
+        .header-logo img { width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,.4); }
+        .header-title { margin:0; color:white; font-weight:700; font-size:1.05rem; white-space:nowrap; }
+        .header-nav { flex:1; display:flex; align-items:center; justify-content:center; gap:4px; overflow:hidden; }
+        .header-user { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+        .hd-username { color:rgba(255,255,255,.9); font-size:13px; white-space:nowrap; }
+        .nav-btn { background:rgba(255,255,255,.15) !important; border:1px solid rgba(255,255,255,.25) !important; color:white !important; font-size:12px !important; padding:4px 10px !important; white-space:nowrap; }
+        .nav-btn:hover { background:rgba(255,255,255,.28) !important; }
+        .admin-btn { background:rgba(251,191,36,.25) !important; border-color:rgba(251,191,36,.45) !important; }
+        .nav-sep { color:rgba(255,255,255,.35); margin:0 2px; font-size:16px; }
+        .logout-btn { border-color:rgba(255,255,255,.4) !important; color:white !important; background:rgba(255,255,255,.1) !important; }
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px 48px;
+        }
+        .intro-card {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            color: #14532d;
+            line-height: 1.7;
+        }
+        .intro-card h3 { margin: 0 0 8px 0; font-size: 1.1rem; color: #166534; }
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .book-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .book-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            padding: 8px 0;
+        }
+        .book-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 15px;
+            line-height: 1.45;
+            min-height: 2.9em;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .book-meta { font-size: 13px; color: #6b7280; }
+        .book-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pdf-frame-wrap {
+            width: 100%;
+            height: 78vh;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f3f4f6;
+            position: relative;
+        }
+        .pdf-frame {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+        /* 去掉 Element-Plus 弹窗的 body 内边距，让 PDF 完全铺满 */
+        .el-dialog__body {
+            padding: 0 !important;
+        }
+        .knowledge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        .knowledge-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: box-shadow .2s, transform .15s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .knowledge-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,.1);
+            transform: translateY(-2px);
+        }
+        .knowledge-card .kc-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+        .knowledge-card h4 { margin: 0; color: #166534; font-size: 1.05rem; flex: 1; }
+        .knowledge-card .kc-badge {
+            font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .badge-病害 { background: #fee2e2; color: #991b1b; }
+        .badge-虫害 { background: #fef3c7; color: #92400e; }
+        .badge-生理害 { background: #e0e7ff; color: #3730a3; }
+        .knowledge-card .kc-snippet {
+            font-size: 13px; color: #6b7280; line-height: 1.55;
+            display: -webkit-box; -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .knowledge-card .kc-meta { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+        .knowledge-thumb { width: 100%; max-height: 130px; object-fit: cover; border-radius: 8px; }
+
+        /* ===== 详情弹窗 ===== */
+        .kd-hero {
+            background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+            border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; color: #fff;
+        }
+        .kd-hero h2 { margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 700; }
+        .kd-hero .kd-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .kd-hero .kd-badge {
+            font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 20px;
+        }
+        .kd-hero .kd-badge.病害 { background: #fca5a5; color: #7f1d1d; }
+        .kd-hero .kd-badge.虫害 { background: #fde68a; color: #78350f; }
+        .kd-hero .kd-badge.生理害 { background: #c7d2fe; color: #312e81; }
+        .kd-hero .kd-date { font-size: 12px; color: rgba(255,255,255,.7); }
+
+        .kd-section {
+            border-radius: 10px; padding: 14px 16px; margin-bottom: 12px;
+        }
+        .kd-section-symptom   { background: #fef9c3; border-left: 4px solid #eab308; }
+        .kd-section-pattern   { background: #eff6ff; border-left: 4px solid #3b82f6; }
+        .kd-section-harm      { background: #fff1f2; border-left: 4px solid #f43f5e; }
+        .kd-section-prevention{ background: #f0fdf4; border-left: 4px solid #22c55e; }
+        .kd-section-images    { background: #f8fafc; border-left: 4px solid #64748b; }
+
+        .kd-section .kd-label {
+            font-size: 13px; font-weight: 700; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .kd-section-symptom   .kd-label { color: #854d0e; }
+        .kd-section-pattern   .kd-label { color: #1e40af; }
+        .kd-section-harm      .kd-label { color: #9f1239; }
+        .kd-section-prevention .kd-label { color: #166534; }
+        .kd-section-images    .kd-label { color: #334155; }
+
+        .kd-section .kd-text {
+            font-size: 14px; line-height: 1.75; color: #374151; white-space: pre-wrap; margin: 0;
+        }
+        .kd-img-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+        .kd-img-grid img {
+            max-height: 180px; max-width: 100%; border-radius: 8px;
+            cursor: zoom-in; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,.1);
+        }
+        .el-dialog__body { padding: 0 24px 24px !important; }
+        .el-dialog__header { padding: 20px 24px 12px !important; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="classify-container">
+            <div class="classify-header">
+                <div class="header-left">
+                    <div class="header-logo">
+                        <img src="./images/logo.png" alt="Logo" />
+                        <h2 class="header-title">智慧茶叶病害检测</h2>
+                    </div>
+                </div>
+                <div class="header-nav">
+                    <el-dropdown v-if="isAdmin" trigger="click" @command="handleAdminNav">
+                        <el-button class="nav-btn admin-btn" size="small">⚙️ 管理 ▾</el-button>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="knowledge">📝 知识库管理</el-dropdown-item>
+                                <el-dropdown-item command="users">👥 用户管理</el-dropdown-item>
+                                <el-dropdown-item command="logs">📋 系统日志</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                    <span class="nav-sep" v-if="isAdmin">│</span>
+                    <el-button class="nav-btn" size="small" @click="goDetect">📸 图像检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="goVideo">🎬 视频检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="goRealtime">📹 实时检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="goHistory">📋 检测历史</el-button>
+                </div>
+                <div class="header-user">
+                    <span class="hd-username">👤 {{ currentUser.realName || currentUser.username || '用户' }}</span>
+                    <el-button class="logout-btn" type="danger" size="small" plain @click="handleLogout">退出</el-button>
+                </div>
+            </div>
+
+            <div class="main-content" v-loading="loading">
+                <el-tabs v-model="activeTab" type="border-card" @tab-change="onTabChange">
+                    <el-tab-pane label="📕 电子资料（PDF）" name="pdf">
+                        <div class="intro-card">
+                            <h3>📖 资料说明</h3>
+                            <p style="margin:0;">
+                                本区展示服务器 <code style="background:rgba(255,255,255,.6);padding:2px 6px;border-radius:4px;">data/pdf</code> 中的茶树病虫害相关 PDF 图鉴与书籍。新文件放入该目录后刷新即可。
+                            </p>
+                        </div>
+                        <div v-if="!books.length && !loading" class="intro-card" style="text-align:center;color:#6b7280;">
+                            暂无 PDF 资料，请将书籍放入 <strong>web-flask/data/pdf</strong>。
+                        </div>
+                        <div class="book-grid">
+                            <div v-for="b in books" :key="b.filename" class="book-card">
+                                <div class="book-icon">📕</div>
+                                <div class="book-title" :title="b.title">{{ b.title }}</div>
+                                <div class="book-meta">{{ formatSize(b.size_bytes) }}</div>
+                                <div class="book-actions">
+                                    <el-button type="primary" size="small" @click="openPreview(b)">预览</el-button>
+                                    <el-button size="small" @click="openInNewTab(b)">新窗口打开</el-button>
+                                </div>
+                            </div>
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="🌿 病虫害条目库" name="knowledge">
+                        <div class="intro-card">
+                            <h3>结构化知识</h3>
+                            <p style="margin:0;">以下为已上架的病虫害条目（症状、规律、防治等），支持搜索与分类筛选。</p>
+                        </div>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+                            <el-input v-model="kwQuery" placeholder="搜索名称" clearable style="max-width:240px;" @keyup.enter="loadKnowledge(true)" />
+                            <select v-model="kindFilter" style="height:32px;padding:0 8px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;font-size:14px;color:#606266;cursor:pointer;outline:none;width:120px;">
+                                <option value="">全部类型</option>
+                                <option value="病害">病害</option>
+                                <option value="虫害">虫害</option>
+                                <option value="生理害">生理害</option>
+                            </select>
+                            <el-button type="primary" @click="loadKnowledge(true)">查询</el-button>
+                        </div>
+                        <div v-if="!knowledgeItems.length && !knowledgeLoading" class="intro-card" style="text-align:center;color:#6b7280;">
+                            暂无条目，请管理员在「知识库管理」中录入。
+                        </div>
+                        <div v-loading="knowledgeLoading" class="knowledge-grid">
+                            <div v-for="it in knowledgeItems" :key="it.id" class="knowledge-card" @click="openKnowledgeDetail(it)">
+                                <div class="kc-header">
+                                    <h4>{{ it.title }}</h4>
+                                    <span :class="['kc-badge', 'badge-' + it.kind]">{{ it.kind }}</span>
+                                </div>
+                                <img v-if="it.image_urls && it.image_urls[0]" :src="it.image_urls[0]" class="knowledge-thumb" alt="" />
+                                <div v-if="it.symptom" class="kc-snippet">{{ it.symptom }}</div>
+                                <div class="kc-meta">更新于 {{ it.updated_at?.slice(0,10) }}</div>
+                            </div>
+                        </div>
+                        <div v-if="knowledgeTotal > knowledgeItems.length" style="margin-top:16px;text-align:center;">
+                            <el-button @click="loadMoreKnowledge">加载更多</el-button>
+                        </div>
+                    </el-tab-pane>
+                </el-tabs>
+            </div>
+        </div>
+
+        <el-dialog
+            v-model="previewVisible"
+            :title="previewTitle"
+            width="92%"
+            top="3vh"
+            destroy-on-close
+            @closed="previewUrl = ''"
+        >
+            <div class="pdf-frame-wrap">
+                <iframe
+                    v-if="previewUrl"
+                    class="pdf-frame"
+                    :src="previewUrl"
+                    title="PDF 预览"
+                ></iframe>
+            </div>
+        </el-dialog>
+
+        <el-dialog v-model="detailVisible" :title="detailItem?.title || '详情'" width="680px" top="5vh" destroy-on-close>
+            <div v-if="detailItem">
+                <!-- 顶部信息块 -->
+                <div class="kd-hero">
+                    <h2>{{ detailItem.title }}</h2>
+                    <div class="kd-meta">
+                        <span :class="['kd-badge', detailItem.kind]">{{ detailItem.kind }}</span>
+                        <span class="kd-date">更新时间：{{ detailItem.updated_at?.slice(0,10) }}</span>
+                    </div>
+                </div>
+
+                <!-- 参考图片（若有，放最前） -->
+                <div v-if="detailItem.image_urls?.length" class="kd-section kd-section-images">
+                    <div class="kd-label">🖼️ 参考图片</div>
+                    <div class="kd-img-grid">
+                        <img v-for="(u,i) in detailItem.image_urls" :key="i" :src="u"
+                             alt="" @click="window.open(u,'_blank')" />
+                    </div>
+                </div>
+
+                <!-- 发病症状 -->
+                <div v-if="detailItem.symptom" class="kd-section kd-section-symptom">
+                    <div class="kd-label">⚠️ 发病症状</div>
+                    <p class="kd-text">{{ detailItem.symptom }}</p>
+                </div>
+
+                <!-- 发病规律 -->
+                <div v-if="detailItem.pattern_text" class="kd-section kd-section-pattern">
+                    <div class="kd-label">🔄 发病规律</div>
+                    <p class="kd-text">{{ detailItem.pattern_text }}</p>
+                </div>
+
+                <!-- 危害特征 -->
+                <div v-if="detailItem.harm" class="kd-section kd-section-harm">
+                    <div class="kd-label">☠️ 危害特征</div>
+                    <p class="kd-text">{{ detailItem.harm }}</p>
+                </div>
+
+                <!-- 防治方法 -->
+                <div v-if="detailItem.prevention" class="kd-section kd-section-prevention">
+                    <div class="kd-label">✅ 防治方法</div>
+                    <p class="kd-text">{{ detailItem.prevention }}</p>
+                </div>
+
+                <!-- 无任何内容时提示 -->
+                <div v-if="!detailItem.symptom && !detailItem.pattern_text && !detailItem.harm && !detailItem.prevention && !detailItem.image_urls?.length"
+                     style="text-align:center;color:#9ca3af;padding:24px 0;">暂无详细内容</div>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script>
+        function apiBase() {
+            return window.location.origin;
+        }
+
+        const UserCache = {
+            USER_KEY: 'yyxz_core_user_info',
+            getUser() {
+                const s = localStorage.getItem(this.USER_KEY);
+                return s ? JSON.parse(s) : null;
+            },
+            clearUser() { localStorage.removeItem(this.USER_KEY); localStorage.removeItem('yyxz_token'); },
+            isLoggedIn() { return !!this.getUser(); }
+        };
+
+        const { createApp } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            data() {
+                return {
+                    currentUser: {},
+                    isAdmin: false,
+                    activeTab: 'pdf',
+                    models: [],
+                    modelsLoading: false,
+                    selectedModel: '',
+                    loading: false,
+                    books: [],
+                    previewVisible: false,
+                    previewUrl: '',
+                    previewTitle: '',
+                    knowledgeItems: [],
+                    knowledgeTotal: 0,
+                    knowledgePage: 1,
+                    knowledgeLoading: false,
+                    kwQuery: '',
+                    kindFilter: '',
+                    detailVisible: false,
+                    detailItem: null
+                };
+            },
+            mounted() {
+                if (!UserCache.isLoggedIn()) {
+                    window.location.href = './login.html';
+                    return;
+                }
+                this.currentUser = UserCache.getUser() || {};
+                this.isAdmin = this.currentUser.role === 'admin';
+                this.loadModels();
+                this.loadBooks();
+            },
+            methods: {
+                onTabChange(name) {
+                    if (name === 'knowledge' && !this.knowledgeItems.length) {
+                        this.loadKnowledge(true);
+                    }
+                },
+                async loadKnowledge(reset) {
+                    if (reset) {
+                        this.knowledgePage = 1;
+                        this.knowledgeItems = [];
+                    }
+                    this.knowledgeLoading = true;
+                    try {
+                        const q = new URLSearchParams({
+                            page: String(this.knowledgePage),
+                            page_size: '12',
+                            q: this.kwQuery || '',
+                            kind: this.kindFilter || ''
+                        });
+                        const res = await fetch(apiBase() + '/api/knowledge/items?' + q.toString());
+                        const body = await res.json();
+                        if (body.code === 200 && body.data) {
+                            this.knowledgeTotal = body.data.total || 0;
+                            const items = body.data.items || [];
+                            this.knowledgeItems = reset ? items : this.knowledgeItems.concat(items);
+                        } else {
+                            ElMessage.error(body.message || '加载失败');
+                        }
+                    } catch (e) {
+                        ElMessage.error('网络错误: ' + e.message);
+                    } finally {
+                        this.knowledgeLoading = false;
+                    }
+                },
+                loadMoreKnowledge() {
+                    this.knowledgePage += 1;
+                    this.loadKnowledge(false);
+                },
+                async openKnowledgeDetail(it) {
+                    this.detailVisible = true;
+                    this.detailItem = { ...it };
+                    try {
+                        const res = await fetch(apiBase() + '/api/knowledge/items/' + it.id);
+                        const body = await res.json();
+                        if (body.code === 200 && body.data) {
+                            this.detailItem = body.data;
+                        }
+                    } catch (e) {
+                        ElMessage.error(e.message);
+                    }
+                },
+                goKnowledgeAdmin() {
+                    window.location.href = './tea-knowledge-admin.html';
+                },
+                goUserManage() {
+                    window.location.href = './user-manage.html';
+                },
+                goLogManage() {
+                    window.location.href = './log-manage.html';
+                },
+                handleAdminNav(cmd) {
+                    const map = {
+                        knowledge: './tea-knowledge-admin.html',
+                        users: './user-manage.html',
+                        logs: './log-manage.html',
+                    };
+                    if (map[cmd]) window.location.href = map[cmd];
+                },
+                async loadModels() {
+                    this.modelsLoading = true;
+                    try {
+                        const res = await fetch(apiBase() + '/api/models');
+                        const body = await res.json();
+                        if (body.code === 200) {
+                            this.models = body.data || [];
+                            if (this.models.length && !this.selectedModel) {
+                                this.selectedModel = this.models[0].key;
+                            }
+                        }
+                    } catch (e) {
+                        ElMessage.error('加载模型失败：' + e.message);
+                    } finally {
+                        this.modelsLoading = false;
+                    }
+                },
+                handleModelChange() {},
+                async loadBooks() {
+                    this.loading = true;
+                    try {
+                        const res = await fetch(apiBase() + '/api/tea-knowledge/pdfs');
+                        const body = await res.json();
+                        if (body.code === 200) {
+                            this.books = body.data || [];
+                        } else {
+                            ElMessage.error(body.message || '加载失败');
+                        }
+                    } catch (e) {
+                        ElMessage.error('网络错误: ' + e.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                pdfUrl(b) {
+                    // #zoom=FitH 让 Chrome/Edge 内置 PDF 查看器铺满宽度，不再小图居中
+                    return apiBase() + '/api/tea-knowledge/pdf?f=' + encodeURIComponent(b.filename) + '#zoom=FitH';
+                },
+                formatSize(bytes) {
+                    if (bytes == null || bytes < 0) return '—';
+                    let n = bytes;
+                    const units = ['B', 'KB', 'MB', 'GB'];
+                    let i = 0;
+                    while (n >= 1024 && i < units.length - 1) {
+                        n /= 1024;
+                        i++;
+                    }
+                    return (i === 0 ? Math.round(n) : n.toFixed(1)) + ' ' + units[i];
+                },
+                openPreview(b) {
+                    this.previewTitle = b.title;
+                    this.previewUrl = this.pdfUrl(b);
+                    this.previewVisible = true;
+                },
+                openInNewTab(b) {
+                    window.open(this.pdfUrl(b), '_blank');
+                },
+                goDetect() { window.location.href = './detect.html'; },
+                goVideo() { window.location.href = './video-detect.html'; },
+                goRealtime() { window.location.href = './realtime-detect.html'; },
+                goHistory() { window.location.href = './detection-history.html'; },
+                goModelData() {
+                    const url = './model-data.html?type=training&model=' + encodeURIComponent(this.selectedModel || '');
+                    window.open(url, '_blank', 'width=1200,height=800');
+                },
+                handleLogout() {
+                    UserCache.clearUser();
+                    ElMessage.success('已退出');
+                    window.location.href = './login.html';
+                }
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

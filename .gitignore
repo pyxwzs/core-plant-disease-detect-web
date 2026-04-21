@@ -1,0 +1,38 @@
+# IDE
+.idea/
+.vscode/
+__pycache__/
+*.iml
+*.iws
+*.ipr
+
+# Compiled files
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Build directories
+target/
+build/
+dist/
+out/
+
+# Logs
+*.log
+logs/
+
+# System files
+.DS_Store
+Thumbs.db 
+
+
+
+# 检测历史（本地图片与 JSON，可按需提交示例数据）
+# web-flask/data 整目录不再排除，改为只忽略其中的运行时文件
+
+
+.venv/

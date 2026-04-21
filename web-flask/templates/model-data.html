@@ -1,0 +1,677 @@
+<!-- MD5: c72813f38ec0092304477101a3e24669 -->
+<!--
+版权所有 © 2025 羊羊小栈 (GJQ)
+
+作者：羊羊小栈
+时间：2025-07-31 16:25:08
+
+本系统为原创作品，禁止二次销售！禁止将系统对应的视频、文档进行二次发布！
+违者需立即停止侵权行为，并按照【羊羊小栈系统版权声明及保护条款】中规定数额进行赔偿，并承担相应法律责任。
+-->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模型数据查看 - 智慧农业植物病害检测系统</title>
+    <script src="/static/vendor/vue.global.js"></script>
+    <script src="/static/vendor/element-plus.full.js"></script>
+    <script src="/static/vendor/element-plus-icons.js"></script>
+    <script src="/static/vendor/echarts.min.js"></script>
+    <link rel="stylesheet" href="/static/vendor/element-plus.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        }
+        
+        #app {
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .data-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+        
+        .data-header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%);
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+        
+        .header-title {
+            margin: 0;
+            color: white;
+            font-weight: 700;
+            font-size: 1.4rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .data-main {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        
+        .training-chart {
+            width: 100%;
+            height: 350px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        
+        .validation-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #303133;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .accuracy-info {
+            background: #f0f9ff;
+            border: 1px solid #e0f2fe;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .accuracy-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .accuracy-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .accuracy-label {
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .accuracy-value {
+            font-weight: 600;
+            color: #16a34a;
+            font-size: 16px;
+        }
+        
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        
+        .image-item {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #e4e7ed;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .image-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .image-item img {
+            width: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .image-name {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #909399;
+        }
+        
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            flex-direction: column;
+            color: #909399;
+        }
+        
+        .error-container {
+            text-align: center;
+            padding: 40px;
+            color: #f56c6c;
+        }
+        
+        .empty-container {
+            text-align: center;
+            padding: 40px;
+            color: #909399;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="data-container">
+            <!-- 头部 -->
+            <div class="data-header">
+                <h2 class="header-title">{{ pageTitle }}</h2>
+                <el-button class="close-btn" @click="closeWindow">关闭</el-button>
+            </div>
+            
+            <!-- 主内容区域 -->
+            <div class="data-main">
+                <!-- 训练数据图表 -->
+                <div v-if="dataType === 'training'">
+                    <div v-if="loading" class="loading-container" v-loading="loading">
+                        <div style="height: 100px;"></div>
+                        <p style="margin-top: 16px;">加载训练数据中...</p>
+                    </div>
+                    
+                    <div v-else-if="error" class="error-container">
+                        <div>❌ {{ error }}</div>
+                    </div>
+                    
+                    <div v-else-if="trainingData && trainingData.length > 0">
+                        <div class="section-title">📊 训练过程数据</div>
+                        <div class="charts-container">
+                            <div>
+                                <h4 style="margin: 0 0 16px 0; color: #303133; font-size: 16px;">损失曲线</h4>
+                                <div id="lossChart" class="training-chart"></div>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 16px 0; color: #303133; font-size: 16px;">精度曲线</h4>
+                                <div id="accuracyChart" class="training-chart"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div v-else class="empty-container">
+                        <div>📊 暂无训练数据</div>
+                    </div>
+                </div>
+                
+                <!-- 验证数据展示 -->
+                <div v-if="dataType === 'validation'">
+                    <div v-if="loading" class="loading-container" v-loading="loading">
+                        <div style="height: 100px;"></div>
+                        <p style="margin-top: 16px;">加载验证数据中...</p>
+                    </div>
+                    
+                    <div v-else-if="error" class="error-container">
+                        <div>❌ {{ error }}</div>
+                    </div>
+                    
+                    <div v-else-if="validationData">
+                        <!-- 检测精度信息 -->
+                        <div class="section-title" v-if="validationData.accuracy">🎯 检测精度</div>
+                        <div class="accuracy-info" v-if="validationData.accuracy">
+                            <div class="accuracy-item">
+                                <span class="accuracy-label">精度 (Precision):</span>
+                                <span class="accuracy-value">{{ (validationData.accuracy.precision * 100).toFixed(2) }}%</span>
+                            </div>
+                            <div class="accuracy-item">
+                                <span class="accuracy-label">召回率 (Recall):</span>
+                                <span class="accuracy-value">{{ (validationData.accuracy.recall * 100).toFixed(2) }}%</span>
+                            </div>
+                            <div class="accuracy-item">
+                                <span class="accuracy-label">mAP@0.5:</span>
+                                <span class="accuracy-value">{{ (validationData.accuracy.mAP50 * 100).toFixed(2) }}%</span>
+                            </div>
+                            <div class="accuracy-item">
+                                <span class="accuracy-label">mAP@0.5-0.95:</span>
+                                <span class="accuracy-value">{{ (validationData.accuracy.mAP50_95 * 100).toFixed(2) }}%</span>
+                            </div>
+                            <div class="accuracy-item">
+                                <span class="accuracy-label">测试图像数:</span>
+                                <span class="accuracy-value">{{ validationData.accuracy.images }}</span>
+                            </div>
+                            <div class="accuracy-item">
+                                <span class="accuracy-label">检测实例数:</span>
+                                <span class="accuracy-value">{{ validationData.accuracy.instances }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 各类别检测精度 -->
+                        <div class="section-title" v-if="validationData.class_results && validationData.class_results.length > 0">📊 各类别检测精度</div>
+                        <div v-if="validationData.class_results && validationData.class_results.length > 0" class="class-results-table">
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                                <thead>
+                                    <tr style="background-color: #f5f7fa;">
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">类别</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">图像数</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">实例数</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">精度</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">召回率</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">mAP@0.5</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">mAP@0.5-0.95</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="classResult in validationData.class_results" :key="classResult.class_name">
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: 600;">{{ classResult.class_name }}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ classResult.images }}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ classResult.instances }}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ (classResult.precision * 100).toFixed(1) }}%</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ (classResult.recall * 100).toFixed(1) }}%</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ (classResult.mAP50 * 100).toFixed(1) }}%</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ (classResult.mAP50_95 * 100).toFixed(1) }}%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 验证图片 -->
+                        <div class="section-title">🖼️ 测试集图片</div>
+                        <div v-if="validationData.images && validationData.images.length > 0" class="images-grid">
+                            <div v-for="image in validationData.images" :key="image.name" class="image-item">
+                                <img :src="image.url" :alt="image.name" @click="previewImage(image.url)" />
+                                <div class="image-name">{{ image.name }}</div>
+                            </div>
+                        </div>
+                        <div v-else class="empty-container">
+                            <div>🖼️ 暂无验证图片</div>
+                        </div>
+                    </div>
+                    
+                    <div v-else class="empty-container">
+                        <div>🖼️ 暂无验证数据</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 图片预览对话框 -->
+        <el-dialog
+            v-model="showPreview"
+            title="图片预览"
+            width="80%"
+            center
+        >
+            <div style="text-align: center;">
+                <img :src="previewImageUrl" style="max-width: 100%; max-height: 70vh;" />
+            </div>
+        </el-dialog>
+    </div>
+
+    <script>
+        // API配置
+        const API_CONFIG = {
+            baseURL: window.location.origin,
+            endpoints: {
+                modelData: '/api/model-data'
+            }
+        };
+
+        const { createApp } = Vue;
+        const { ElMessage, ElLoading } = ElementPlus;
+
+        const app = createApp({
+            data() {
+                return {
+                    dataType: '',
+                    modelKey: '',
+                    loading: false,
+                    error: null,
+                    trainingData: null,
+                    validationData: null,
+                    showPreview: false,
+                    previewImageUrl: '',
+                    lossChart: null,
+                    accuracyChart: null
+                };
+            },
+            computed: {
+                pageTitle() {
+                    if (this.dataType === 'training') {
+                        return '📊 训练数据查看';
+                    } else if (this.dataType === 'validation') {
+                        return '🖼️ 测试数据查看';
+                    }
+                    return '模型数据查看';
+                }
+            },
+            async mounted() {
+                this.parseUrlParams();
+                await this.loadData();
+            },
+            methods: {
+                parseUrlParams() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    this.dataType = urlParams.get('type') || '';
+                    this.modelKey = urlParams.get('model') || '';
+                },
+                
+                async loadData() {
+                    if (!this.dataType || !this.modelKey) {
+                        this.error = '缺少必要参数';
+                        return;
+                    }
+                    
+                    this.loading = true;
+                    this.error = null;
+                    
+                    try {
+                        const response = await fetch(`${API_CONFIG.baseURL}${API_CONFIG.endpoints.modelData}?type=${this.dataType}&model=${this.modelKey}`);
+                        const result = await response.json();
+                        
+                        if (result.code === 200) {
+                            if (this.dataType === 'training') {
+                                this.trainingData = result.data;
+                                // 使用Vue的$nextTick确保DOM更新后再初始化图表
+                                this.$nextTick(() => {
+                                    setTimeout(() => {
+                                        this.initTrainingCharts();
+                                    }, 50);
+                                });
+                            } else if (this.dataType === 'validation') {
+                                this.validationData = result.data;
+                            }
+                        } else {
+                            this.error = result.message || '加载数据失败';
+                        }
+                    } catch (error) {
+                        this.error = '网络请求失败：' + error.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                initTrainingCharts() {
+                    if (!this.trainingData || this.trainingData.length === 0) return;
+                    
+                    this.initLossChart();
+                    this.initAccuracyChart();
+                },
+                
+                initLossChart() {
+                    const chartDom = document.getElementById('lossChart');
+                    if (!chartDom) {
+                        console.error('Loss chart container not found');
+                        return;
+                    }
+                    
+                    // 如果已经有图表实例，先销毁
+                    if (this.lossChart) {
+                        this.lossChart.dispose();
+                    }
+                    
+                    this.lossChart = echarts.init(chartDom);
+                    
+                    const epochs = this.trainingData.map(item => item.epoch);
+                    const trainTotalLoss = this.trainingData.map(item => item.train_total_loss);
+                    const valTotalLoss = this.trainingData.map(item => item.val_total_loss);
+                    
+                    const lossOption = {
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'cross'
+                            }
+                        },
+                        legend: {
+                            data: ['训练损失', '验证损失'],
+                            top: '5%'
+                        },
+                        grid: {
+                            top: '20%',
+                            bottom: '15%',
+                            left: '12%',
+                            right: '8%'
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: epochs,
+                            name: 'Epoch',
+                            nameLocation: 'middle',
+                            nameGap: 25
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '损失值',
+                            nameLocation: 'middle',
+                            nameGap: 40
+                        },
+                        series: [
+                            {
+                                name: '训练损失',
+                                type: 'line',
+                                data: trainTotalLoss,
+                                smooth: true,
+                                lineStyle: {
+                                    color: '#f56c6c',
+                                    width: 2
+                                },
+                                symbol: 'circle',
+                                symbolSize: 4
+                            },
+                            {
+                                name: '验证损失',
+                                type: 'line',
+                                data: valTotalLoss,
+                                smooth: true,
+                                lineStyle: {
+                                    color: '#e6a23c',
+                                    width: 2
+                                },
+                                symbol: 'circle',
+                                symbolSize: 4
+                            }
+                        ]
+                    };
+                    
+                    this.lossChart.setOption(lossOption);
+                },
+                
+                initAccuracyChart() {
+                    const chartDom = document.getElementById('accuracyChart');
+                    if (!chartDom) {
+                        console.error('Accuracy chart container not found');
+                        return;
+                    }
+                    
+                    // 如果已经有图表实例，先销毁
+                    if (this.accuracyChart) {
+                        this.accuracyChart.dispose();
+                    }
+                    
+                    this.accuracyChart = echarts.init(chartDom);
+                    
+                    const epochs = this.trainingData.map(item => item.epoch);
+                    const precision = this.trainingData.map(item => item.precision);
+                    const recall = this.trainingData.map(item => item.recall);
+                    const map50 = this.trainingData.map(item => item.map50);
+                    const map50_95 = this.trainingData.map(item => item.map50_95);
+                    
+                    const accuracyOption = {
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'cross'
+                            },
+                            formatter: function(params) {
+                                let result = `Epoch ${params[0].axisValue}<br/>`;
+                                params.forEach(param => {
+                                    const value = (param.value * 100).toFixed(2);
+                                    result += `${param.marker}${param.seriesName}: ${value}%<br/>`;
+                                });
+                                return result;
+                            }
+                        },
+                        legend: {
+                            data: ['Precision', 'Recall', 'mAP@0.5', 'mAP@0.5-0.95'],
+                            top: '5%'
+                        },
+                        grid: {
+                            top: '20%',
+                            bottom: '15%',
+                            left: '12%',
+                            right: '8%'
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: epochs,
+                            name: 'Epoch',
+                            nameLocation: 'middle',
+                            nameGap: 25
+                        },
+                        yAxis: {
+                            type: 'value',
+                            name: '检测指标',
+                            nameLocation: 'middle',
+                            nameGap: 40,
+                            min: 0,
+                            max: 1,
+                            axisLabel: {
+                                formatter: function(value) {
+                                    return (value * 100).toFixed(0) + '%';
+                                }
+                            }
+                        },
+                        series: [
+                            {
+                                name: 'Precision',
+                                type: 'line',
+                                data: precision,
+                                smooth: true,
+                                lineStyle: {
+                                    color: '#22c55e',
+                                    width: 2
+                                },
+                                symbol: 'circle',
+                                symbolSize: 4
+                            },
+                            {
+                                name: 'Recall',
+                                type: 'line',
+                                data: recall,
+                                smooth: true,
+                                lineStyle: {
+                                    color: '#409eff',
+                                    width: 2
+                                },
+                                symbol: 'circle',
+                                symbolSize: 4
+                            },
+                            {
+                                name: 'mAP@0.5',
+                                type: 'line',
+                                data: map50,
+                                smooth: true,
+                                lineStyle: {
+                                    color: '#e6a23c',
+                                    width: 2
+                                },
+                                symbol: 'circle',
+                                symbolSize: 4
+                            },
+                            {
+                                name: 'mAP@0.5-0.95',
+                                type: 'line',
+                                data: map50_95,
+                                smooth: true,
+                                lineStyle: {
+                                    color: '#f56c6c',
+                                    width: 2
+                                },
+                                symbol: 'circle',
+                                symbolSize: 4
+                            }
+                        ]
+                    };
+                    
+                    this.accuracyChart.setOption(accuracyOption);
+                    
+                    // 监听窗口大小变化
+                    window.addEventListener('resize', this.handleResize);
+                },
+                
+                previewImage(url) {
+                    this.previewImageUrl = url;
+                    this.showPreview = true;
+                },
+                
+                closeWindow() {
+                    window.close();
+                }
+            },
+            
+            beforeUnmount() {
+                // 销毁图表实例
+                if (this.lossChart) {
+                    try {
+                        this.lossChart.dispose();
+                    } catch (e) {
+                        console.warn('Loss chart dispose error:', e);
+                    }
+                }
+                
+                if (this.accuracyChart) {
+                    try {
+                        this.accuracyChart.dispose();
+                    } catch (e) {
+                        console.warn('Accuracy chart dispose error:', e);
+                    }
+                }
+                
+                // 移除窗口大小变化监听器
+                window.removeEventListener('resize', this.handleResize);
+            },
+            
+            created() {
+                // 绑定resize事件处理函数
+                this.handleResize = () => {
+                    if (this.lossChart) {
+                        this.lossChart.resize();
+                    }
+                    if (this.accuracyChart) {
+                        this.accuracyChart.resize();
+                    }
+                };
+            }
+        });
+        
+        app.use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

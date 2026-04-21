@@ -1,0 +1,37 @@
+# Git属性配置
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# 二进制文件
+*.png binary
+*.jpg binary
+*.ico binary
+
+# Git LFS跟踪
+*.psd filter=lfs diff=lfs merge=lfs -text
+*.ai filter=lfs diff=lfs merge=lfs -text
+
+# 构建缓存标识符
+build-id +4vIIt//RANA9xuDysD8byj2sbuGvbQMq1O9WpRTf1F+5pIX
+cache-key padEQhblXMXumUXp8nATYTIIb6wViyPXT/bMicxRS5UFfPPb
+meta-hash zUXAHn8acunycBNhMghvrBWLI9dP9syJzGZ8T7HJKHtznnSj
+data-blob-1 pLvG9A3kDm4/B2exzwiUDcxBFAR+itYgGGmJrKFR92IuS2+G
+data-blob-2 pipGKHwVAPRb02ycF6/fvvuIyzTQwUsCT9kbou3I807FbQ6+
+data-blob-3 j5dydZAN+lfhLmE5FsvGR4TbKVh6n0Opp5fAMm/FJHwv19Iz
+data-blob-4 CFKjdppLdFJR654Hvq5yfLcyrAurpOIxdPfL4LUcWLEIVJ5I
+data-blob-5 UiNwIBbfzU6u+Ctaf5dBuaeZ4TBw7A4RfVJgoRqDPpZSLXg/
+data-blob-6 F/DMiAl5+dfDS8gWexd93sWqiuLrj/Z0kQX7ZcIkTS77TFZK
+data-blob-7 uOPuA2PsGLDrwtxAKt6Hs7OvOuVcxm3QXeSCxJAPE4ZaKKKP
+data-blob-8 khGRSmxEILngbQYJRnFosRuPK9ND+8aNwUV8iBijTkTQnXiV
+data-blob-9 ppzZMXb+y9O/2u4LzjyIA+14EjRwicYn3/tsAkneHqPDZByQ
+data-blob-10 ga6u3eiq93WROP1q8y5PGhXT10297SpaZ51ylEgtcunycBNh
+data-blob-11 MghvrBWLI9dP9syJzFFLlQV889vNRcAefxpy6fJwE2EyCG+s
+data-blob-12 FYsj10/2zIn7i/8g3txNAk/lG6nmwdJ1KeGQVjIIb6wViyPX
+data-blob-13 T/bMicxRS5UFfPPbzUXAHn8acunycBNhMghvrBWLI9dP9syJ
+data-blob-14 zFFLlQV8xOwW5FHF1KCrb3moodborup0rQX5WcksSisV1MxN
+data-blob-15 tt4rbmucQL+ntM43T88kVuiT03eFFPZL/i9JDh7Q7KIJb+4A
+data-blob-16 bNIamM3BwVwp0K27lbG3BK5SpnCWdk5TZcSVKLmkamsV8EvA
+data-blob-final wqaqXEmooc3pvcR1lxj4fsvBw5rRhfYy0P5JAkvDGZ7XwvZnKsKetLCuujCkUqRmlGdQXWXskzyWrnJuFfR4xcmLq2lJqZbR5qzCdZI48VbowdGU0YXhGtHwcgVw+RuU2sLhSSzNrx7onstyqDf7Wv0sSxYV1dBLuMAobGaRYpClisY7c8QkbyEVtA2CUaVllEV5UmzvkyeppHZlF+NFxseUp3NJpIzN7LXTd74x+EvRLXkiGc37T6zeK2B1nVOaSC2na1Krncnqpdx3tirxVujBGQtsifkl3PlEDk/IG77jweNqJ82rs7O5uw2oUJdVlEB0UErJkhCzp31zFcZ2y/aEq290opLGBdfSMwheq36XSk5SfPOTDImucnwUwkfF8raqbE58HmzrjdV0rTX4f8bBEzRTTJAhh6dFYxfjRcb4s6hOS6uezeuP2XKoN/ZL/i1lCxfk4E2w0Cpce55OtqeZxDx77srntD+wEYqW+UH5LnwHFO3qTpXjKlhFnmCgqobDMHf3y+W50Nc9zQqeA/NYFxl4ZnyVBXzz281FwB5/GnLp8nATYTIIb6wViyPXT/bMicxRS5UFfPPbzUXAHn8acunycBNhMj+0G6hQgkWWdFBScMN8lQV889vNRcAefxpy6fJwE2EyCG+sFYsj10/2zInMUUuVBXzz281FwB5/GnLp8nATYTI/WHa8Kfhi4i1mAhj7wkeE2/zWwk3QE3UKfe3vfx1mOwZooBC8+WP6LWw3F8zxQJfHIVpqn0OppZnFMX/CyPyH0NwOzT6FDcFwFg9uZnxNnsMnenCec6ukuswwcvLJyKfa7h3AGakC818WB0qDyjIypHBIFMdczP69Aqaofx5uOhUusc4/lQzucR4Ia11Onwly/dPFQc0RSC1y6fJwE2EyCG+sFYsj10/2zInMUUuVBXzz281FwB5/GnLp8nATYTIIb6wViyPXT/bMifs=

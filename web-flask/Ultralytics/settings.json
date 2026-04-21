@@ -1,0 +1,21 @@
+{
+  "settings_version": "0.0.6",
+  "datasets_dir": "/Users/pengyexiu/Desktop/bishe/yuzihang/core-plant-disease-detect-web/datasets",
+  "weights_dir": "/Users/pengyexiu/Desktop/bishe/yuzihang/core-plant-disease-detect-web/weights",
+  "runs_dir": "/Users/pengyexiu/Desktop/bishe/yuzihang/core-plant-disease-detect-web/runs",
+  "uuid": "3a187265880aef183c127dd98ce8c5d6cdcea34a1206a21e04ae698c74675b27",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "hub": true,
+  "mlflow": true,
+  "neptune": true,
+  "raytune": true,
+  "tensorboard": false,
+  "wandb": false,
+  "vscode_msg": true,
+  "openvino_msg": true
+}

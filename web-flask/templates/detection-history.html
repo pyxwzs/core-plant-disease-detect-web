@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>检测历史 - 智慧农业植物病害检测系统</title>
+    <script src="/static/vendor/vue.global.js"></script>
+    <script src="/static/vendor/element-plus.full.js"></script>
+    <script src="/static/vendor/element-plus-icons.js"></script>
+    <link rel="stylesheet" href="/static/vendor/element-plus.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+        }
+        #app {
+            height: 100vh;
+            overflow: hidden;
+        }
+        .classify-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .classify-header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%);
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+            flex-shrink: 0;
+        }
+        .header-left { display:flex; align-items:center; gap:14px; flex-shrink:0; }
+        .header-logo { display:flex; align-items:center; gap:10px; }
+        .header-logo img { width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,.4); }
+        .header-title { margin:0; color:white; font-weight:700; font-size:1.05rem; white-space:nowrap; }
+        .model-selector { min-width:220px; }
+        .model-selector .el-input__wrapper { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.2); }
+        .model-selector .el-input__inner { color:white; }
+        .model-selector .el-input__inner::placeholder { color:rgba(255,255,255,.7); }
+        .header-nav { flex:1; display:flex; align-items:center; justify-content:center; gap:4px; overflow:hidden; }
+        .header-user { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+        .hd-username { color:rgba(255,255,255,.9); font-size:13px; white-space:nowrap; }
+        .nav-btn { background:rgba(255,255,255,.15) !important; border:1px solid rgba(255,255,255,.25) !important; color:white !important; font-size:12px !important; padding:4px 10px !important; white-space:nowrap; }
+        .nav-btn:hover { background:rgba(255,255,255,.28) !important; }
+        .admin-btn { background:rgba(251,191,36,.25) !important; border-color:rgba(251,191,36,.45) !important; }
+        .nav-sep { color:rgba(255,255,255,.35); margin:0 2px; font-size:16px; }
+        .logout-btn { border-color:rgba(255,255,255,.4) !important; color:white !important; background:rgba(255,255,255,.1) !important; }
+        /* 可滚动主内容区 */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px 48px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+        .thumb {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+            border: none;
+            display: block;
+        }
+        .empty-hint { color: #909399; text-align: center; padding: 48px; }
+        .detail-meta {
+            color: #606266;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+        .annotated-img {
+            max-width: 100%;
+            max-height: 380px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #f9fafb;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
+        .result-rank {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #22c55e;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .result-info { flex: 1; min-width: 0; }
+        .result-class { font-size: 14px; font-weight: 600; color: #1f2937; }
+        .result-class-en { font-size: 12px; color: #6b7280; margin-top: 2px; }
+        .confidence-bar {
+            height: 5px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            border-radius: 3px;
+        }
+        .result-confidence {
+            font-size: 15px;
+            font-weight: 700;
+            color: #16a34a;
+            flex-shrink: 0;
+        }
+        .page-intro {
+            margin-bottom: 16px;
+            color: #606266;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .tabs-bar { margin-bottom: 16px; }
+
+        /* 卡片网格 */
+        .record-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .record-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: box-shadow .25s, transform .2s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .record-card:hover {
+            box-shadow: 0 8px 28px rgba(34,197,94,0.18);
+            transform: translateY(-3px);
+        }
+        .record-card-img-wrap {
+            position: relative;
+            width: 100%;
+            padding-top: 72%;   /* 约 4:3 比例 */
+            background: #f0fdf4;
+            overflow: hidden;
+        }
+        .record-card-thumb {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .record-card-nothumb {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+        }
+        .record-card-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(22,163,74,0.88);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .record-card-body {
+            padding: 10px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+        }
+        .record-card-summary {
+            font-size: 12px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+        .record-card-time {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+
+        /* 卡片内病害百分比条 */
+        .card-dets { display: flex; flex-direction: column; gap: 5px; }
+        .card-det-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .card-det-rank {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            background: #9ca3af;
+        }
+        .card-det-rank.rank-1 { background: linear-gradient(135deg,#FFD700,#FFA500); }
+        .card-det-rank.rank-2 { background: linear-gradient(135deg,#C0C0C0,#A9A9A9); }
+        .card-det-rank.rank-3 { background: linear-gradient(135deg,#CD7F32,#B8860B); }
+        .card-det-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1f2937;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+        .card-det-bar-wrap {
+            width: 52px;
+            height: 5px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .card-det-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg,#22c55e,#16a34a);
+            border-radius: 3px;
+            transition: width .4s ease;
+        }
+        .card-det-pct {
+            font-size: 10px;
+            font-weight: 700;
+            color: #16a34a;
+            flex-shrink: 0;
+            min-width: 34px;
+            text-align: right;
+        }
+
+        /* 选中模式 */
+        .record-card.selected {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 2px rgba(34,197,94,0.35);
+        }
+        .card-checkbox {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 5;
+            width: 20px;
+            height: 20px;
+            accent-color: #22c55e;
+            cursor: pointer;
+        }
+        .select-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .frame-table { width:100%; border-collapse:collapse; font-size:12px; }
+        .frame-table th {
+            background:#f0fdf4; color:#15803d; font-weight:600;
+            padding:7px 10px; text-align:left; border-bottom:2px solid #d1fae5;
+            position:sticky; top:0; z-index:1;
+        }
+        .frame-table td { padding:6px 10px; border-bottom:1px solid #f3f4f6; vertical-align:middle; }
+        .frame-table tr:hover td { background:#fafff8; }
+        .frame-no { color:#6b7280; font-variant-numeric: tabular-nums; }
+        .det-badge {
+            display:inline-block; min-width:22px; text-align:center;
+            padding:1px 6px; border-radius:12px; font-size:11px; font-weight:700;
+        }
+        .det-badge.has { background:#dcfce7; color:#15803d; }
+        .det-badge.none { background:#f3f4f6; color:#9ca3af; }
+        .frame-cls { font-size:11px; color:#374151; }
+        .frame-cls span { display:inline-block; margin:1px 3px 1px 0; padding:0 5px;
+            background:#f0fdf4; border-radius:8px; color:#15803d; }
+        .frames-pagination {
+            display:flex; align-items:center; justify-content:center;
+            gap:8px; padding:12px 0 4px; font-size:13px; color:#374151;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="classify-container">
+            <div class="classify-header">
+                <div class="header-left">
+                    <div class="header-logo">
+                        <img src="./images/logo.png" alt="Logo" />
+                        <h2 class="header-title">智慧茶叶病害检测</h2>
+                    </div>
+                    <el-select v-model="selectedModel" placeholder="选择模型" @change="handleModelChange"
+                        class="model-selector" :loading="modelsLoading">
+                        <el-option v-for="model in models" :key="model.key" :label="model.name" :value="model.key">
+                            <span>{{ model.name }}</span>
+                            <el-tag size="small" type="info" style="margin-left:6px;">{{ model.num_classes }}类</el-tag>
+                        </el-option>
+                    </el-select>
+                </div>
+                <div class="header-nav">
+                    <el-dropdown v-if="isAdmin" trigger="click" @command="handleAdminNav">
+                        <el-button class="nav-btn admin-btn" size="small">⚙️ 管理 ▾</el-button>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="knowledge">📝 知识库管理</el-dropdown-item>
+                                <el-dropdown-item command="users">👥 用户管理</el-dropdown-item>
+                                <el-dropdown-item command="logs">📋 系统日志</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                    <span class="nav-sep" v-if="isAdmin">│</span>
+                    <el-button class="nav-btn" size="small" @click="navTo('detect.html')">📸 图像检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('video-detect.html')">🎬 视频检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('realtime-detect.html')">📹 实时检测</el-button>
+                    <el-button class="nav-btn" size="small" @click="navTo('tea-knowledge.html')">📚 茶树知识</el-button>
+                </div>
+                <div class="header-user">
+                    <span class="hd-username">👤 {{ currentUser.realName || currentUser.username || '用户' }}</span>
+                    <el-button class="logout-btn" type="danger" size="small" plain @click="handleLogout">退出</el-button>
+                </div>
+            </div><!-- /classify-header -->
+
+            <div class="main-content">
+            <p class="page-intro">保存与检测页一致的病害诊断结果，便于回顾。按类型查看图像 / 视频 / 实时，列表含预览、检测时间与简要分析。</p>
+
+            <div class="tabs-bar">
+                <el-radio-group v-model="activeTab" size="default">
+                    <el-radio-button label="image">图像检测</el-radio-button>
+                    <el-radio-button label="video">视频检测</el-radio-button>
+                    <el-radio-button label="realtime">实时检测</el-radio-button>
+                </el-radio-group>
+            </div>
+
+            <div class="card" v-loading="loading">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span style="font-weight:600; color:#303133;">共 <strong style="color:#16a34a;">{{ list.length }}</strong> 条</span>
+                    <div style="display:flex; gap:8px;">
+                        <el-button
+                            size="small"
+                            :type="selectMode ? 'success' : 'default'"
+                            @click="toggleSelectMode"
+                        >{{ selectMode ? '取消选择' : '选择' }}</el-button>
+                        <el-button type="primary" size="small" :loading="loading" @click="loadList">刷新</el-button>
+                    </div>
+                </div>
+
+                <!-- 批量操作栏（选择模式下显示） -->
+                <div v-if="selectMode" class="select-bar">
+                    <el-checkbox
+                        :model-value="selectedIds.length === list.length && list.length > 0"
+                        :indeterminate="selectedIds.length > 0 && selectedIds.length < list.length"
+                        @change="toggleSelectAll"
+                    >全选</el-checkbox>
+                    <span style="font-size:13px; color:#374151;">已选 <strong style="color:#16a34a;">{{ selectedIds.length }}</strong> 条</span>
+                    <el-button
+                        type="danger"
+                        size="small"
+                        :disabled="selectedIds.length === 0"
+                        :loading="deleting"
+                        @click="confirmDelete"
+                    >🗑 删除选中</el-button>
+                </div>
+
+                <div v-if="list.length" class="record-grid">
+                    <div
+                        v-for="row in list"
+                        :key="row.id"
+                        class="record-card"
+                        :class="{ selected: selectedIds.includes(row.id) }"
+                        @click="selectMode ? toggleSelect(row.id) : openDetail(row)"
+                    >
+                        <!-- 选择模式 checkbox -->
+                        <input
+                            v-if="selectMode"
+                            type="checkbox"
+                            class="card-checkbox"
+                            :checked="selectedIds.includes(row.id)"
+                            @click.stop="toggleSelect(row.id)"
+                        />
+                        <!-- 图片区域 -->
+                        <div class="record-card-img-wrap">
+                            <img
+                                v-if="thumbUrl(row)"
+                                class="record-card-thumb"
+                                :src="thumbUrl(row)"
+                                alt="预览"
+                                @error="onImgErr"
+                            />
+                            <div v-else class="record-card-nothumb">🎬</div>
+                            <!-- 角标：检出数 -->
+                            <div class="record-card-badge" v-if="row.total_detections != null">
+                                {{ row.total_detections > 0 ? '检出 ' + row.total_detections + ' 处' : '未检出' }}
+                            </div>
+                        </div>
+                        <!-- 文字区域 -->
+                        <div class="record-card-body">
+                            <!-- 有 top_detections → 显示百分比条 -->
+                            <div v-if="row.top_detections && row.top_detections.length" class="card-dets">
+                                <div
+                                    v-for="d in row.top_detections"
+                                    :key="d.rank"
+                                    class="card-det-row"
+                                >
+                                    <span class="card-det-rank" :class="'rank-'+d.rank">{{ d.rank }}</span>
+                                    <span class="card-det-name" :title="d.class_name_zh || d.class_name">
+                                        {{ d.class_name_zh || d.class_name || '—' }}
+                                    </span>
+                                    <div class="card-det-bar-wrap">
+                                        <div class="card-det-bar-fill" :style="{ width: d.pct_val + '%' }"></div>
+                                    </div>
+                                    <span class="card-det-pct">{{ d.percentage }}</span>
+                                </div>
+                            </div>
+                            <!-- 无 top_detections → 降级显示摘要文本 -->
+                            <div v-else class="record-card-summary">{{ cardSummary(row) }}</div>
+                            <div class="record-card-time">🕐 {{ row.created_at }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else-if="!loading" class="empty-hint">
+                    <div style="font-size:48px; margin-bottom:12px;">📂</div>
+                    <div>该分类下暂无记录</div>
+                    <div style="margin-top:10px; font-size:13px; color:#909399;">
+                        <span v-if="activeTab==='image'">请使用 <el-button type="primary" link @click="goDetect">图片检测</el-button></span>
+                        <span v-else-if="activeTab==='video'">请使用 <el-button type="primary" link @click="goVideo">视频检测</el-button></span>
+                        <span v-else>请使用 <el-button type="primary" link @click="goRealtime">实时检测</el-button>（仅在有检出时保存）</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <el-dialog v-model="detailVisible" title="检测详情" width="580px" destroy-on-close>
+            <div v-if="detail">
+                <!-- 基本信息 -->
+                <div style="display:flex; gap:16px; font-size:13px; color:#6b7280; margin-bottom:16px;">
+                    <span>🕐 {{ detail.created_at }}</span>
+                    <span>🤖 {{ detail.model }}</span>
+                </div>
+
+                <!-- 病害诊断列表（图像 / 实时） -->
+                <template v-if="detail.source !== 'video'">
+                    <div v-if="detailDetections.length > 0">
+                        <div style="font-weight:600; color:#303133; margin-bottom:10px;">🔬 病害诊断（共 {{ detailDetections.length }} 项）</div>
+                        <div
+                            v-for="(d, idx) in detailDetections"
+                            :key="idx"
+                            class="result-item"
+                        >
+                            <div class="result-rank" :class="idx < 3 ? 'rank-'+(idx+1) : ''">{{ idx + 1 }}</div>
+                            <div class="result-info">
+                                <div class="result-class">{{ d.class_name_zh || d.class_name || '—' }}</div>
+                                <div class="result-class-en" v-if="d.class_name && d.class_name !== d.class_name_zh">{{ d.class_name }}</div>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" :style="{ width: (Number(d.confidence)||0)*100+'%' }"></div>
+                                </div>
+                            </div>
+                            <div class="result-confidence">{{ d.percentage || ((Number(d.confidence)||0)*100).toFixed(1)+'%' }}</div>
+                        </div>
+                    </div>
+                    <div v-else style="text-align:center; padding:20px; color:#9ca3af;">
+                        <div style="font-size:36px; margin-bottom:8px;">🔍</div>
+                        <div>未检测到病害</div>
+                    </div>
+
+                    <!-- 标注图 -->
+                    <div v-if="detailImageUrl" style="margin-top:16px; text-align:center;">
+                        <div style="font-weight:600; color:#303133; margin-bottom:8px;">📸 检测结果图</div>
+                        <img class="annotated-img" :src="detailImageUrl" alt="检测结果图" />
+                    </div>
+                </template>
+
+                <!-- 视频统计 -->
+                <template v-else>
+                    <!-- 切换 Tab -->
+                    <div style="margin-bottom:14px;">
+                        <el-radio-group v-model="videoDetailTab" size="small">
+                            <el-radio-button label="overview">📊 概览</el-radio-button>
+                            <el-radio-button label="frames">🎞 每帧详情</el-radio-button>
+                        </el-radio-group>
+                    </div>
+
+                    <!-- ── 概览 ── -->
+                    <div v-if="videoDetailTab === 'overview'">
+                        <div style="font-weight:600; color:#303133; margin-bottom:10px;">📊 视频检测统计</div>
+                        <el-descriptions :column="2" border size="small" style="margin-bottom:14px;">
+                            <el-descriptions-item label="总检测次数">{{ detail.total_detections ?? '—' }}</el-descriptions-item>
+                            <el-descriptions-item label="有检出帧数">{{ detail.frames_with_detections ?? '—' }}</el-descriptions-item>
+                            <el-descriptions-item label="总帧数">{{ detail.total_frames ?? '—' }}</el-descriptions-item>
+                            <el-descriptions-item label="视频时长">{{ detail.duration_sec != null ? detail.duration_sec + 's' : '—' }}</el-descriptions-item>
+                        </el-descriptions>
+                        <div v-if="detailTopClasses.length">
+                            <div style="font-weight:600; color:#303133; margin-bottom:8px;">主要检出类别</div>
+                            <div
+                                v-for="(c, idx) in detailTopClasses"
+                                :key="idx"
+                                class="result-item"
+                            >
+                                <div class="result-rank" :class="idx < 3 ? 'rank-'+(idx+1) : ''">{{ idx+1 }}</div>
+                                <div class="result-info">
+                                    <div class="result-class">{{ c.class_name_zh || c.class_name || '—' }}</div>
+                                    <div class="result-class-en" v-if="c.class_name">{{ c.class_name }}</div>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill" :style="{ width: (c.pct_val || 0) + '%' }"></div>
+                                    </div>
+                                </div>
+                                <div class="result-confidence">{{ c.percentage || '—' }}</div>
+                            </div>
+                        </div>
+                        <!-- 原视频 + 检测视频并排 -->
+                        <div style="margin-top:18px; display:flex; gap:16px; flex-wrap:wrap;">
+                            <div v-if="detailOrigVideoUrl" style="flex:1; min-width:200px;">
+                                <div style="font-weight:600; color:#303133; margin-bottom:6px; font-size:13px;">📹 原始视频</div>
+                                <video :src="detailOrigVideoUrl" controls
+                                    style="width:100%; border-radius:8px; max-height:220px; background:#000;"></video>
+                            </div>
+                            <div v-if="detailVideoUrl" style="flex:1; min-width:200px;">
+                                <div style="font-weight:600; color:#16a34a; margin-bottom:6px; font-size:13px;">🔬 检测结果视频</div>
+                                <video :src="detailVideoUrl" controls
+                                    style="width:100%; border-radius:8px; max-height:220px; background:#000;"></video>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── 每帧详情 ── -->
+                    <div v-else>
+                        <!-- 筛选 + 翻页控制 -->
+                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap;">
+                            <el-checkbox v-model="framesOnlyDet" @change="loadFrames(1)">仅显示有检出的帧</el-checkbox>
+                            <span style="font-size:12px; color:#9ca3af; margin-left:auto;">
+                                共 {{ framesTotal }} 帧 · 第 {{ framesPage }}/{{ framesPages }} 页
+                            </span>
+                        </div>
+                        <div v-loading="framesLoading" style="overflow-x:auto; max-height:360px; overflow-y:auto;">
+                            <table class="frame-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:60px;">帧号</th>
+                                        <th style="width:50px;">检出数</th>
+                                        <th>病害类别</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-if="!framesData.length && !framesLoading">
+                                        <td colspan="3" style="text-align:center; color:#9ca3af; padding:24px;">暂无帧数据</td>
+                                    </tr>
+                                    <tr v-for="f in framesData" :key="f.frame_number">
+                                        <td class="frame-no">#{{ f.frame_number }}</td>
+                                        <td>
+                                            <span class="det-badge" :class="f.detections_count > 0 ? 'has' : 'none'">
+                                                {{ f.detections_count }}
+                                            </span>
+                                        </td>
+                                        <td class="frame-cls">
+                                            <span v-for="d in f.detections.slice(0,4)" :key="d.class_name_en">
+                                                {{ d.class_name_zh || d.class_name_en }}
+                                                <em style="color:#9ca3af; font-style:normal;">({{ (d.confidence*100).toFixed(0) }}%)</em>
+                                            </span>
+                                            <span v-if="f.detections.length > 4" style="color:#9ca3af;">…</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- 翻页 -->
+                        <div class="frames-pagination">
+                            <el-button size="small" :disabled="framesPage<=1" @click="loadFrames(framesPage-1)">上一页</el-button>
+                            <span>{{ framesPage }} / {{ framesPages }}</span>
+                            <el-button size="small" :disabled="framesPage>=framesPages" @click="loadFrames(framesPage+1)">下一页</el-button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- 加载中占位 -->
+            <div v-else style="text-align:center; padding:32px; color:#9ca3af;">加载中…</div>
+        </el-dialog>
+            </div><!-- /main-content -->
+        </div><!-- /classify-container -->
+
+    <script>
+        const API_PATHS = {
+            list: (type) => '/api/detection-history?type=' + encodeURIComponent(type),
+            detail: (id) => '/api/detection-history/' + encodeURIComponent(id),
+            image: (filename) => '/api/detection-history/images/' + encodeURIComponent(filename),
+            video: (filename) => '/api/detection-history/videos/' + encodeURIComponent(filename),
+        };
+
+        function apiBase() {
+            return window.location.origin;
+        }
+
+        const UserCache = {
+            USER_KEY: 'yyxz_core_user_info',
+            getUser() {
+                const s = localStorage.getItem(this.USER_KEY);
+                return s ? JSON.parse(s) : null;
+            },
+            clearUser() { localStorage.removeItem(this.USER_KEY); localStorage.removeItem('yyxz_token'); },
+            isLoggedIn() { return !!this.getUser(); }
+        };
+
+        const { createApp } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            data() {
+                return {
+                    currentUser: {},
+                    isAdmin: false,
+                    models: [],
+                    modelsLoading: false,
+                    selectedModel: '',
+                    activeTab: 'image',
+                    loading: false,
+                    list: [],
+                    selectMode: false,
+                    selectedIds: [],
+                    deleting: false,
+                    detailVisible: false,
+                    detail: null,
+                    detailRow: null,
+                    detailImageUrl: '',
+                    detailVideoUrl: '',
+                    detailOrigVideoUrl: '',
+                    videoDetailTab: 'overview',
+                    framesLoading: false,
+                    framesData: [],
+                    framesPage: 1,
+                    framesPages: 1,
+                    framesTotal: 0,
+                    framesOnlyDet: false
+                };
+            },
+            computed: {
+                detailDetections() {
+                    if (!this.detail) return [];
+                    // 新格式：顶层 detections；旧格式：result.detections
+                    const dets = this.detail.detections
+                        || (this.detail.result || {}).detections
+                        || [];
+                    return dets.map(d => ({
+                        class_name_zh: d.class_name_zh || '',
+                        class_name: d.class_name || d.class_name_en || '',
+                        confidence: typeof d.confidence === 'number' ? d.confidence : (parseFloat(d.confidence) || 0),
+                        percentage: d.percentage || null,
+                    }));
+                },
+                detailTopClasses() {
+                    if (!this.detail) return [];
+                    // 新格式：顶层 top_classes；旧格式：result.top_classes
+                    const tc = this.detail.top_classes
+                        || (this.detail.result || {}).top_classes
+                        || [];
+                    const total = this.detail.total_detections
+                        || (this.detail.result || {}).total_detections || 0;
+                    return tc.map((c, i) => {
+                        const count = c.count || 0;
+                        const pct_val = c.pct_val != null
+                            ? c.pct_val
+                            : (total > 0 ? parseFloat((count / total * 100).toFixed(1)) : 0);
+                        return {
+                            rank: c.rank || (i + 1),
+                            class_name_zh: c.class_name_zh || '',
+                            class_name: c.class_name || c.class_name_en || '',
+                            count,
+                            pct_val,
+                            percentage: c.percentage || `${pct_val.toFixed(1)}%`,
+                        };
+                    });
+                }
+            },
+            watch: {
+                activeTab() {
+                    this.loadList();
+                },
+                videoDetailTab(val) {
+                    if (val === 'frames' && this.framesData.length === 0) {
+                        this.loadFrames(1);
+                    }
+                }
+            },
+            mounted() {
+                if (!UserCache.isLoggedIn()) {
+                    window.location.href = './login.html';
+                    return;
+                }
+                const u = UserCache.getUser();
+                this.currentUser = u || {};
+                this.isAdmin = (u && u.role === 'admin');
+                this.loadModels();
+                this.loadList();
+            },
+            methods: {
+                async loadModels() {
+                    this.modelsLoading = true;
+                    try {
+                        const response = await fetch(apiBase() + '/api/models');
+                        const result = await response.json();
+                        if (result.code === 200) {
+                            this.models = result.data || [];
+                            if (this.models.length > 0 && !this.selectedModel) {
+                                this.selectedModel = this.models[0].key;
+                            }
+                        } else {
+                            ElMessage.error(result.message || '加载模型失败');
+                        }
+                    } catch (error) {
+                        ElMessage.error('加载模型失败：' + error.message);
+                    } finally {
+                        this.modelsLoading = false;
+                    }
+                },
+                handleModelChange() {},
+                cardSummary(row) {
+                    if (row.summary) return row.summary;
+                    const n = row.total_detections;
+                    if (n !== undefined && n !== null) {
+                        return n > 0 ? `检出 ${n} 处病害` : '未检出病害';
+                    }
+                    return '—';
+                },
+                isVideoFileName(name) {
+                    return name && /\.(mp4|avi|mov)$/i.test(name);
+                },
+                thumbUrl(row) {
+                    const fn = row.preview_filename || row.image_filename;
+                    if (!fn || this.isVideoFileName(fn)) return '';
+                    return apiBase() + API_PATHS.image(fn);
+                },
+                onImgErr(e) {
+                    e.target.style.opacity = '0.3';
+                },
+                async loadList() {
+                    this.loading = true;
+                    this.selectedIds = [];
+                    try {
+                        const res = await fetch(apiBase() + API_PATHS.list(this.activeTab));
+                        const body = await res.json();
+                        if (body.code === 200) {
+                            this.list = body.data || [];
+                        } else {
+                            ElMessage.error(body.message || '加载失败');
+                        }
+                    } catch (e) {
+                        ElMessage.error('网络错误: ' + e.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async openDetail(row) {
+                    this.detail = null;
+                    this.detailRow = row;
+                    this.detailImageUrl = '';
+                    this.detailVideoUrl = '';
+                    this.detailOrigVideoUrl = '';
+                    this.videoDetailTab = 'overview';
+                    this.framesData = [];
+                    this.framesPage = 1;
+                    this.framesPages = 1;
+                    this.framesTotal = 0;
+                    this.detailVisible = true;
+                    try {
+                        const res = await fetch(apiBase() + API_PATHS.detail(row.id));
+                        const body = await res.json();
+                        if (body.code !== 200 || !body.data) {
+                            ElMessage.error(body.message || '加载失败');
+                            return;
+                        }
+                        this.detail = body.data;
+                        const src = this.detail.source || 'image';
+                        if (src === 'video') {
+                            // 检测后视频
+                            const vf = (this.detail.video_file || '').replace(/^videos\//, '');
+                            if (vf) this.detailVideoUrl = apiBase() + API_PATHS.video(vf);
+                            // 原始视频
+                            const ovf = (this.detail.original_video_file || '').replace(/^videos\//, '');
+                            if (ovf) this.detailOrigVideoUrl = apiBase() + API_PATHS.video(ovf);
+                        } else {
+                            // 新格式优先用 annotated_file，旧格式用 result.detection_image_file，再降级用 image_file
+                            let fn = (
+                                this.detail.annotated_file ||
+                                (this.detail.result || {}).detection_image_file ||
+                                this.detail.image_file || ''
+                            ).replace(/^images\//, '');
+                            if (fn) {
+                                this.detailImageUrl = apiBase() + API_PATHS.image(fn);
+                            }
+                        }
+                    } catch (e) {
+                        ElMessage.error(e.message);
+                    }
+                },
+                goDetect() { window.location.href = './detect.html'; },
+                goVideo() { window.location.href = './video-detect.html'; },
+                goRealtime() { window.location.href = './realtime-detect.html'; },
+                goModelData() {
+                    const url = `./model-data.html?type=training&model=${encodeURIComponent(this.selectedModel || '')}`;
+                    window.open(url, '_blank', 'width=1200,height=800');
+                },
+                goTeaKnowledge() {
+                    window.location.href = './tea-knowledge.html';
+                },
+                navTo(page) { window.location.href = './' + page; },
+                handleAdminNav(cmd) {
+                    const map = { knowledge: 'tea-knowledge-admin.html', users: 'user-manage.html', logs: 'log-manage.html' };
+                    if (map[cmd]) window.location.href = './' + map[cmd];
+                },
+                handleLogout() {
+                    UserCache.clearUser();
+                    ElMessage.success('已退出');
+                    window.location.href = './login.html';
+                },
+
+                toggleSelectMode() {
+                    this.selectMode = !this.selectMode;
+                    this.selectedIds = [];
+                },
+                toggleSelect(id) {
+                    const idx = this.selectedIds.indexOf(id);
+                    if (idx === -1) this.selectedIds.push(id);
+                    else this.selectedIds.splice(idx, 1);
+                },
+                toggleSelectAll(val) {
+                    this.selectedIds = val ? this.list.map(r => r.id) : [];
+                },
+                async confirmDelete() {
+                    if (this.selectedIds.length === 0) return;
+                    try {
+                        await ElementPlus.ElMessageBox.confirm(
+                            `确认删除选中的 ${this.selectedIds.length} 条记录？此操作不可撤销，关联文件也会一并删除。`,
+                            '批量删除',
+                            { confirmButtonText: '确认删除', cancelButtonText: '取消', type: 'warning' }
+                        );
+                    } catch { return; }
+                    this.deleting = true;
+                    try {
+                        const res = await fetch(apiBase() + '/api/detection-history', {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ids: this.selectedIds })
+                        });
+                        const body = await res.json();
+                        if (body.code === 200) {
+                            const n = body.deleted.length;
+                            ElMessage.success(`已删除 ${n} 条记录`);
+                            this.selectMode = false;
+                            this.selectedIds = [];
+                            await this.loadList();
+                        } else {
+                            ElMessage.error(body.message || '删除失败');
+                        }
+                    } catch (e) {
+                        ElMessage.error('网络错误: ' + e.message);
+                    } finally {
+                        this.deleting = false;
+                    }
+                },
+
+                async loadFrames(page) {
+                    if (!this.detail || this.detail.source !== 'video') return;
+                    this.framesLoading = true;
+                    this.framesPage = page || 1;
+                    try {
+                        const url = apiBase()
+                            + `/api/detection-history/${encodeURIComponent(this.detail.id)}/frames`
+                            + `?page=${this.framesPage}&size=50`
+                            + `&only_detections=${this.framesOnlyDet ? 1 : 0}`;
+                        const res = await fetch(url);
+                        const body = await res.json();
+                        if (body.code === 200) {
+                            this.framesData = body.data || [];
+                            this.framesTotal = body.total || 0;
+                            this.framesPages = body.pages || 1;
+                        } else {
+                            ElMessage.error(body.message || '加载帧数据失败');
+                        }
+                    } catch (e) {
+                        ElMessage.error('网络错误: ' + e.message);
+                    } finally {
+                        this.framesLoading = false;
+                    }
+                }
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

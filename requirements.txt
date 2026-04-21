@@ -1,0 +1,16 @@
+# 智慧茶叶病害检测 Web（Flask + YOLOv8）
+# 建议 Python 3.10+
+#
+# NVIDIA GPU：请先按本机 CUDA 版本安装 PyTorch，再装其余依赖，例如（以 CUDA 12.4 为例）：
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+#   pip install -r requirements.txt
+# 仅用 CPU 可直接：pip install -r requirements.txt
+
+flask>=3.0.0,<4
+flask-cors>=4.0.0
+
+ultralytics>=8.3.0
+
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0,<3

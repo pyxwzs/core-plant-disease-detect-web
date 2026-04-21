@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>病虫害知识库管理 - 智慧农业植物病害检测系统</title>
+    <script src="/static/vendor/vue.global.js"></script>
+    <script src="/static/vendor/element-plus.full.js"></script>
+    <link rel="stylesheet" href="/static/vendor/element-plus.css" />
+    <style>
+        html, body { margin: 0; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0fdf4; }
+        /* ===== 统一顶栏 ===== */
+        .app-header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%);
+            padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15); position: sticky; top: 0; z-index: 100;
+        }
+        .hd-left { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+        .hd-left img { width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,.4); }
+        .hd-title { margin:0; color:white; font-weight:700; font-size:1.05rem; white-space:nowrap; }
+        .hd-nav { flex:1; display:flex; align-items:center; justify-content:center; gap:4px; overflow:hidden; }
+        .hd-user { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+        .hd-username { color:rgba(255,255,255,.9); font-size:13px; white-space:nowrap; }
+        .nav-btn { background:rgba(255,255,255,.15) !important; border:1px solid rgba(255,255,255,.25) !important; color:white !important; font-size:12px !important; padding:4px 10px !important; white-space:nowrap; }
+        .nav-btn:hover { background:rgba(255,255,255,.28) !important; }
+        .admin-btn { background:rgba(251,191,36,.25) !important; border-color:rgba(251,191,36,.45) !important; }
+        .nav-sep { color:rgba(255,255,255,.35); margin:0 2px; font-size:16px; }
+        .logout-btn { border-color:rgba(255,255,255,.4) !important; color:white !important; background:rgba(255,255,255,.1) !important; }
+        /* ===== 内容区 ===== */
+        .app-content { width: 100%; max-width: 1200px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
+        #app { width: 100%; }
+        .table-wrap { width: 100%; overflow-x: auto; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+        .data-table { width: 100%; min-width: 760px; border-collapse: collapse; background: #fff; font-size: 14px; }
+        .data-table th { background: #f9fafb; color: #374151; font-weight: 600; padding: 10px 12px; border-bottom: 2px solid #e5e7eb; text-align: left; white-space: nowrap; }
+        .data-table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; color: #1f2937; vertical-align: middle; }
+        .data-table tr:hover td { background: #f0fdf4; }
+        .data-table .no-data { text-align: center; color: #9ca3af; padding: 32px; }
+        .status-tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .status-on  { background: #dcfce7; color: #166534; }
+        .status-off { background: #f3f4f6; color: #6b7280; }
+        .page-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+        .page-title { margin: 0; color: #166534; font-size: 1.35rem; }
+        .thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; }
+        .img-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .img-row img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; }
+        .native-select {
+            height: 32px; padding: 0 8px; border: 1px solid #dcdfe6; border-radius: 4px;
+            background: #fff; font-size: 14px; color: #606266; cursor: pointer; outline: none;
+        }
+        .native-select:focus { border-color: #409eff; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 统一顶栏（无论是否有权限都显示） -->
+        <div class="app-header">
+            <div class="hd-left">
+                <img src="./images/logo.png" alt="Logo" />
+                <h2 class="hd-title">智慧茶叶病害检测</h2>
+            </div>
+            <div class="hd-nav">
+                <el-dropdown trigger="click" @command="handleAdminNav">
+                    <el-button class="nav-btn admin-btn" size="small">⚙️ 管理 ▾</el-button>
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item command="knowledge">📝 知识库管理</el-dropdown-item>
+                            <el-dropdown-item command="users">👥 用户管理</el-dropdown-item>
+                            <el-dropdown-item command="logs">📋 系统日志</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+                <span class="nav-sep">│</span>
+                <el-button class="nav-btn" size="small" @click="navTo('detect.html')">📸 图像检测</el-button>
+                <el-button class="nav-btn" size="small" @click="navTo('video-detect.html')">🎬 视频检测</el-button>
+                <el-button class="nav-btn" size="small" @click="navTo('realtime-detect.html')">📹 实时检测</el-button>
+                <el-button class="nav-btn" size="small" @click="navTo('detection-history.html')">📋 检测历史</el-button>
+                <el-button class="nav-btn" size="small" @click="navTo('tea-knowledge.html')">📚 茶树知识</el-button>
+            </div>
+            <div class="hd-user">
+                <span class="hd-username">👤 {{ authUser || '管理员' }}</span>
+                <el-button class="logout-btn" type="danger" size="small" plain @click="goLogin">退出</el-button>
+            </div>
+        </div>
+        <div class="app-content">
+        <div v-if="!allowed" style="padding:40px;text-align:center;">
+            <el-alert type="warning" title="无权访问" description="请使用管理员账号登录（admin）后重试。" show-icon :closable="false" />
+            <el-button style="margin-top:16px;" @click="goLogin">去登录</el-button>
+        </div>
+        <template v-else>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                <h1 style="margin:0;color:#166534;font-size:1.35rem;">📖 病虫害知识库管理</h1>
+                <div>
+                    <el-button type="primary" @click="openCreate">新增条目</el-button>
+                </div>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+                <el-input v-model="filterQ" placeholder="搜索名称" clearable style="width:200px;" @keyup.enter="loadTable(true)" />
+                <select v-model="filterKind" class="native-select" style="width:110px;">
+                    <option value="">全部类型</option>
+                    <option value="病害">病害</option>
+                    <option value="虫害">虫害</option>
+                    <option value="生理害">生理害</option>
+                </select>
+                <select v-model="filterStatus" class="native-select" style="width:100px;">
+                    <option value="">全部状态</option>
+                    <option :value="1">上架</option>
+                    <option :value="0">下架</option>
+                </select>
+                <el-date-picker v-model="filterDateFrom" type="date" placeholder="更新开始日期"
+                    value-format="YYYY-MM-DD" style="width:148px;" @change="loadTable(true)" />
+                <el-date-picker v-model="filterDateTo" type="date" placeholder="更新结束日期"
+                    value-format="YYYY-MM-DD" style="width:148px;" @change="loadTable(true)" />
+                <el-button @click="loadTable(true)">查询</el-button>
+                <el-button @click="resetFilter">重置</el-button>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:60px;">ID</th>
+                            <th style="width:72px;">图</th>
+                            <th>名称</th>
+                            <th style="width:80px;">类型</th>
+                            <th style="width:80px;">状态</th>
+                            <th style="width:160px;">更新时间</th>
+                            <th style="width:140px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody v-if="rows.length">
+                        <tr v-for="row in rows" :key="row.id">
+                            <td>{{ row.id }}</td>
+                            <td>
+                                <img v-if="row.image_urls && row.image_urls[0]" :src="row.image_urls[0]" class="thumb" alt="" />
+                                <span v-else style="color:#9ca3af;">—</span>
+                            </td>
+                            <td :title="row.title" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ row.title }}</td>
+                            <td>{{ row.kind }}</td>
+                            <td>
+                                <span :class="['status-tag', row.status === 1 ? 'status-on' : 'status-off']">
+                                    {{ row.status === 1 ? '上架' : '下架' }}
+                                </span>
+                            </td>
+                            <td style="white-space:nowrap;">{{ row.updated_at ? row.updated_at.slice(0,19).replace('T',' ') : '—' }}</td>
+                            <td>
+                                <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
+                                <el-button link type="danger" @click="remove(row)">删除</el-button>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody v-else>
+                        <tr><td colspan="7" class="no-data">
+                            <span v-if="loading">加载中…</span>
+                            <span v-else>暂无数据，请输入密码后点击「验证并刷新」</span>
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top:16px;display:flex;justify-content:flex-end;">
+                <el-pagination
+                    v-model:current-page="page"
+                    v-model:page-size="pageSize"
+                    :total="total"
+                    :page-sizes="[10, 20, 50]"
+                    layout="total, sizes, prev, pager, next"
+                    @current-change="loadTable(false)"
+                    @size-change="loadTable(true)"
+                />
+            </div>
+        </template>
+        </div><!-- /app-content -->
+
+        <el-dialog v-model="dialogVisible" :title="editId ? '编辑条目' : '新增条目'" width="640px" destroy-on-close @closed="resetForm">
+            <el-form label-width="100px">
+                <el-form-item label="名称" required>
+                    <el-input v-model="form.title" placeholder="病害/虫害名称" />
+                </el-form-item>
+                <el-form-item label="类型">
+                    <select v-model="form.kind" class="native-select" style="width:100%;">
+                        <option value="病害">病害</option>
+                        <option value="虫害">虫害</option>
+                        <option value="生理害">生理害</option>
+                    </select>
+                </el-form-item>
+                <el-form-item label="状态">
+                    <el-switch v-model="form.statusOn" active-text="上架" inactive-text="下架" />
+                </el-form-item>
+                <el-form-item label="发病症状">
+                    <el-input v-model="form.symptom" type="textarea" :rows="3" />
+                </el-form-item>
+                <el-form-item label="发病规律">
+                    <el-input v-model="form.pattern_text" type="textarea" :rows="3" />
+                </el-form-item>
+                <el-form-item label="危害特征">
+                    <el-input v-model="form.harm" type="textarea" :rows="3" />
+                </el-form-item>
+                <el-form-item label="防治方法">
+                    <el-input v-model="form.prevention" type="textarea" :rows="4" />
+                </el-form-item>
+                <el-form-item label="参考图片">
+                    <el-upload
+                        :show-file-list="false"
+                        accept=".jpg,.jpeg,.png,.gif,.webp"
+                        :http-request="doUpload"
+                    >
+                        <el-button type="primary" size="small">上传图片</el-button>
+                        <span style="margin-left:8px;color:#6b7280;font-size:12px;">单张 ≤5MB</span>
+                    </el-upload>
+                    <div class="img-row" style="margin-top:8px;">
+                        <div v-for="(fn, idx) in form.images" :key="fn" style="position:relative;">
+                            <img :src="imageUrl(fn)" alt="" />
+                            <el-button type="danger" size="small" circle style="position:absolute;top:-8px;right:-8px;" @click="form.images.splice(idx,1)">×</el-button>
+                        </div>
+                    </div>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="dialogVisible = false">取消</el-button>
+                <el-button type="primary" :loading="saving" @click="save">保存</el-button>
+            </template>
+        </el-dialog>
+    </div>
+    <script>
+        function apiBase() { return window.location.origin; }
+        const UserCache = {
+            USER_KEY: 'yyxz_core_user_info',
+            getUser() {
+                const s = localStorage.getItem(this.USER_KEY);
+                return s ? JSON.parse(s) : null;
+            }
+        };
+        const { createApp } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+        createApp({
+            data() {
+                return {
+                    allowed: false,
+                    authUser: '',
+                    loading: false,
+                    rows: [],
+                    total: 0,
+                    page: 1,
+                    pageSize: 10,
+                    filterQ: '',
+                    filterKind: '',
+                    filterStatus: null,
+                    filterDateFrom: '',
+                    filterDateTo: '',
+                    dialogVisible: false,
+                    editId: null,
+                    saving: false,
+                    form: {
+                        title: '',
+                        kind: '病害',
+                        symptom: '',
+                        pattern_text: '',
+                        harm: '',
+                        prevention: '',
+                        images: [],
+                        statusOn: true
+                    }
+                };
+            },
+            mounted() {
+                const u = UserCache.getUser();
+                if (!u || !u.username) {
+                    window.location.href = './login.html';
+                    return;
+                }
+                if (u.role !== 'admin') {
+                    this.allowed = false;
+                    return;
+                }
+                this.allowed = true;
+                this.authUser = u.username;
+                this.$nextTick(() => this.loadTable(true));
+            },
+            methods: {
+                authHeader() {
+                    return 'Bearer ' + (localStorage.getItem('yyxz_token') || '');
+                },
+                imageUrl(fn) {
+                    return apiBase() + '/api/knowledge/images/' + encodeURIComponent(fn);
+                },
+                goLogin() { window.location.href = './login.html'; },
+                goBack() { window.location.href = './tea-knowledge.html'; },
+                navTo(page) { window.location.href = './' + page; },
+                handleAdminNav(cmd) {
+                    const map = { knowledge: 'tea-knowledge-admin.html', users: 'user-manage.html', logs: 'log-manage.html' };
+                    if (map[cmd]) window.location.href = './' + map[cmd];
+                },
+                resetFilter() {
+                    this.filterQ = ''; this.filterKind = '';
+                    this.filterStatus = null; this.filterDateFrom = ''; this.filterDateTo = '';
+                    this.loadTable(true);
+                },
+                async loadTable(reset) {
+                    if (reset) this.page = 1;
+                    this.loading = true;
+                    try {
+                        const p = new URLSearchParams({
+                            page: String(this.page),
+                            page_size: String(this.pageSize)
+                        });
+                        if (this.filterQ) p.set('q', this.filterQ);
+                        if (this.filterKind) p.set('kind', this.filterKind);
+                        if (this.filterStatus !== null && this.filterStatus !== '') p.set('status', String(this.filterStatus));
+                        if (this.filterDateFrom) p.set('time_from', this.filterDateFrom);
+                        if (this.filterDateTo)   p.set('time_to',   this.filterDateTo);
+                        const res = await fetch(apiBase() + '/api/admin/knowledge/items?' + p.toString(), {
+                            headers: { 'Authorization': this.authHeader() }
+                        });
+                        if (res.status === 401 || res.status === 403) {
+                            ElMessage.error('登录已过期或无管理员权限，请重新登录');
+                            this.rows = [];
+                            return;
+                        }
+                        const body = await res.json();
+                        if (body.code === 200 && body.data) {
+                            this.rows = body.data.items || [];
+                            this.total = body.data.total || 0;
+                        } else {
+                            ElMessage.error(body.message || '加载失败');
+                        }
+                    } catch (e) {
+                        ElMessage.error(e.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                openCreate() {
+                    this.editId = null;
+                    this.resetForm();
+                    this.dialogVisible = true;
+                },
+                openEdit(row) {
+                    this.editId = row.id;
+                    const urls = row.image_urls || [];
+                    this.form = {
+                        title: row.title,
+                        kind: row.kind || '病害',
+                        symptom: row.symptom || '',
+                        pattern_text: row.pattern_text || '',
+                        harm: row.harm || '',
+                        prevention: row.prevention || '',
+                        images: urls.map(u => decodeURIComponent(u.split('/').pop() || '')),
+                        statusOn: row.status === 1
+                    };
+                    this.dialogVisible = true;
+                },
+                resetForm() {
+                    this.form = {
+                        title: '',
+                        kind: '病害',
+                        symptom: '',
+                        pattern_text: '',
+                        harm: '',
+                        prevention: '',
+                        images: [],
+                        statusOn: true
+                    };
+                },
+                async doUpload(options) {
+                    const fd = new FormData();
+                    fd.append('file', options.file);
+                    try {
+                        const res = await fetch(apiBase() + '/api/admin/knowledge/upload', {
+                            method: 'POST',
+                            headers: { 'Authorization': this.authHeader() },
+                            body: fd
+                        });
+                        const body = await res.json();
+                        if (body.code === 200 && body.data && body.data.filename) {
+                            this.form.images.push(body.data.filename);
+                            ElMessage.success('上传成功');
+                            options.onSuccess(body);
+                        } else {
+                            ElMessage.error(body.message || '上传失败');
+                            options.onError(new Error(body.message));
+                        }
+                    } catch (e) {
+                        ElMessage.error(e.message);
+                        options.onError(e);
+                    }
+                },
+                async save() {
+                    if (!this.form.title || !this.form.title.trim()) {
+                        ElMessage.error('请填写名称');
+                        return;
+                    }
+                    this.saving = true;
+                    try {
+                        const payload = {
+                            title: this.form.title.trim(),
+                            kind: this.form.kind,
+                            symptom: this.form.symptom,
+                            pattern_text: this.form.pattern_text,
+                            harm: this.form.harm,
+                            prevention: this.form.prevention,
+                            images: this.form.images,
+                            status: this.form.statusOn ? 1 : 0
+                        };
+                        let res;
+                        if (this.editId) {
+                            res = await fetch(apiBase() + '/api/admin/knowledge/items/' + this.editId, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': this.authHeader()
+                                },
+                                body: JSON.stringify(payload)
+                            });
+                        } else {
+                            res = await fetch(apiBase() + '/api/admin/knowledge/items', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': this.authHeader()
+                                },
+                                body: JSON.stringify(payload)
+                            });
+                        }
+                        const body = await res.json();
+                        if (body.code === 200) {
+                            ElMessage.success('保存成功');
+                            this.dialogVisible = false;
+                            this.loadTable(true);
+                        } else {
+                            ElMessage.error(body.message || '保存失败');
+                        }
+                    } catch (e) {
+                        ElMessage.error(e.message);
+                    } finally {
+                        this.saving = false;
+                    }
+                },
+                async remove(row) {
+                    try {
+                        await ElMessageBox.confirm('确定删除「' + row.title + '」？', '确认', { type: 'warning' });
+                    } catch { return; }
+                    try {
+                        const res = await fetch(apiBase() + '/api/admin/knowledge/items/' + row.id, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': this.authHeader() }
+                        });
+                        const body = await res.json();
+                        if (body.code === 200) {
+                            ElMessage.success('已删除');
+                            this.loadTable(true);
+                        } else {
+                            ElMessage.error(body.message || '删除失败');
+                        }
+                    } catch (e) {
+                        ElMessage.error(e.message);
+                    }
+                }
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

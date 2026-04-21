@@ -1,0 +1,19 @@
+# 数据集来源：https://universe.roboflow.com/muhammad-salah/plant-diseases-xy8x3
+# 总样本数：2328
+# 训练集样本数：1629
+# 验证集样本数：465
+# 测试集样本数：234
+
+# 数据集路径配置
+train: ./train/images
+val: ./val/images
+test: ./test/images
+
+# 类别数量
+nc: 30
+
+# 类别名称（英文）
+names: ['Apple Scab Leaf', 'Apple leaf', 'Apple rust leaf', 'Bell_pepper leaf', 'Bell_pepper leaf spot', 'Blueberry leaf', 'Cherry leaf', 'Corn Gray leaf spot', 'Corn leaf blight', 'Corn rust leaf', 'Peach leaf', 'Potato leaf', 'Potato leaf early blight', 'Potato leaf late blight', 'Raspberry leaf', 'Soyabean leaf', 'Soybean leaf', 'Squash Powdery mildew leaf', 'Strawberry leaf', 'Tomato Early blight leaf', 'Tomato Septoria leaf spot', 'Tomato leaf', 'Tomato leaf bacterial spot', 'Tomato leaf late blight', 'Tomato leaf mosaic virus', 'Tomato leaf yellow virus', 'Tomato mold leaf', 'Tomato two spotted spider mites leaf', 'grape leaf', 'grape leaf black rot']
+
+# 类别名称（中文）
+names_cn: ['苹果黑星病叶片', '苹果叶片', '苹果锈病叶片', '甜椒叶片', '甜椒叶斑病', '蓝莓叶片', '樱桃叶片', '玉米灰叶斑病', '玉米叶枯病', '玉米锈病叶片', '桃叶片', '马铃薯叶片', '马铃薯早疫病', '马铃薯晚疫病', '覆盆子叶片', '大豆叶片', '大豆叶片', '南瓜白粉病叶片', '草莓叶片', '番茄早疫病叶片', '番茄叶斑病', '番茄叶片', '番茄细菌性斑点病', '番茄晚疫病叶片', '番茄花叶病毒', '番茄黄化病毒', '番茄霉病叶片', '番茄双斑叶螨叶片', '葡萄叶片', '葡萄黑腐病叶片']
